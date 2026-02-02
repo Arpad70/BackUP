@@ -122,11 +122,35 @@ class BackupModel
         }
         $this->setProgress(65, 'Files compressed');
 
-        // If a target site path is provided, perform a local copy instead of SFTP upload
+        // Prepare target artifacts: target DB dump and target site zip if possible
+        $targetDbFile = null;
+        $targetZipFile = null;
+        $siteName = basename(rtrim($sitePath, '/')) ?: 'site';
+
+        // target DB credentials (optional)
+        $tDbHost = $data['target_db_host'] ?? null;
+        if (is_string($tDbHost) && $tDbHost !== '') {
+            $this->setProgress(50, 'Dumping target database...', 'target_db_dump');
+            $targetDbFile = $this->tmpDir . '/target_db_dump_' . time() . '.sql';
+                $tDbUser = $data['target_db_user'] ?? '';
+                if (!is_string($tDbUser)) $tDbUser = '';
+                $tDbPass = $data['target_db_pass'] ?? '';
+                if (!is_string($tDbPass)) $tDbPass = '';
+                $tDbName = $data['target_db_name'] ?? '';
+                if (!is_string($tDbName)) $tDbName = '';
+            $tDbPort = $data['target_db_port'] ?? null;
+            if (is_string($tDbPort) && ctype_digit($tDbPort)) {
+                $tDbPort = (int)$tDbPort;
+            } elseif (!is_int($tDbPort)) {
+                $tDbPort = 3306;
+            }
+            $tRes = $this->dumpDatabase($tDbHost, $tDbUser, $tDbPass, $tDbName, (int)$tDbPort, $targetDbFile);
+            $response['steps'][] = ['target_db_dump' => $tRes];
+        }
+
+        // target site zip if target path provided locally
         $targetPath = $data['target_site_path'] ?? null;
         if (is_string($targetPath) && $targetPath !== '') {
-            $this->setProgress(70, 'Copying files to target path...', 'local_copy');
-            // ensure parent exists
             if (!is_dir($targetPath)) {
                 if (!@mkdir($targetPath, 0755, true)) {
                     $response['errors'][] = 'Failed to create target path: ' . $targetPath;
@@ -134,80 +158,109 @@ class BackupModel
                     return $response;
                 }
             }
+            $this->setProgress(60, 'Compressing target site files...', 'target_zip');
+            $targetZipFile = $this->tmpDir . '/target_site_backup_' . time() . '.zip';
+            $okTargetZip = $this->zipDirectory($targetPath, $targetZipFile);
+            $response['steps'][] = ['target_site_zip' => $targetZipFile, 'ok' => $okTargetZip];
+            if (! $okTargetZip) {
+                $response['errors'][] = 'Target site zip failed';
+            }
+        }
 
-            $copyOk = $this->recursiveCopy($sitePath, $targetPath);
-            // copy db dump and zip into a backups subdir
-            $backupsDir = rtrim($targetPath, '/') . '/backups';
-            if (!is_dir($backupsDir)) {@mkdir($backupsDir, 0755, true);} 
-            $dbCopy = @copy($dbFile, $backupsDir . '/' . basename($dbFile));
-            $zipCopy = @copy($zipFile, $backupsDir . '/' . basename($zipFile));
+        // list of artifact files to include in final combined archive
+        $artifacts = [];
+        $artifacts[] = ['path' => $dbFile, 'name' => basename($dbFile)];
+        $artifacts[] = ['path' => $zipFile, 'name' => basename($zipFile)];
+        if ($targetDbFile !== null) $artifacts[] = ['path' => $targetDbFile, 'name' => basename($targetDbFile)];
+        if ($targetZipFile !== null) $artifacts[] = ['path' => $targetZipFile, 'name' => basename($targetZipFile)];
 
-            $response['steps'][] = ['local_copy' => ['ok' => $copyOk, 'message' => $copyOk ? 'Site copied' : 'Site copy failed']];
-            $response['steps'][] = ['local_backups' => ['db' => $dbCopy, 'zip' => $zipCopy]];
+        // determine where to place backups: local target path or remote sftp
+        $remoteDir = $data['sftp_remote'] ?? '';
+        if (!is_string($remoteDir)) $remoteDir = '';
+        $remoteDir = rtrim($remoteDir, '/');
+        $sftpHost = $data['sftp_host'] ?? null;
+        $useSftp = false;
+        if ((is_string($sftpHost) && $sftpHost !== '') && (empty($targetPath))) {
+            $useSftp = true;
+        }
 
-            if ($copyOk && $dbCopy && $zipCopy) {
-                $this->setProgress(100, 'Local copy completed successfully');
+        $backupsRel = 'backups';
+
+        if (is_string($targetPath) && $targetPath !== '' && is_dir($targetPath)) {
+            // copy artifacts into target/backups
+            $backupsDir = rtrim($targetPath, '/') . '/' . $backupsRel;
+            if (!is_dir($backupsDir)) @mkdir($backupsDir, 0755, true);
+            foreach ($artifacts as $a) {
+                $path = $a['path'];
+                $name = $a['name'];
+                if ($path !== '' && is_string($path) && file_exists($path)) {
+                    @copy($path, $backupsDir . '/' . $name);
+                }
+            }
+            // create combined zip locally from artifact files
+            $rand = str_pad((string)rand(0, 999999), 6, '0', STR_PAD_LEFT);
+            $combinedName = 'backup_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $siteName) . '_' . date('YmdHis') . '_' . $rand . '.zip';
+            $combinedLocal = $this->tmpDir . '/' . $combinedName;
+            $zip = new \ZipArchive();
+                if ($zip->open($combinedLocal, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+                foreach ($artifacts as $a) {
+                    $path = $a['path'];
+                    $name = $a['name'];
+                    if ($path !== '' && is_string($path) && file_exists($path)) $zip->addFile($path, $name);
+                }
+                $zip->close();
+                // copy combined to target backups
+                @copy($combinedLocal, $backupsDir . '/' . $combinedName);
+                $response['steps'][] = ['combined' => $backupsDir . '/' . $combinedName, 'local_copy' => $combinedLocal];
             } else {
-                $response['errors'][] = 'Local copy encountered errors';
-                $this->setProgress(90, 'Local copy errors (see details)');
+                $response['errors'][] = 'Failed to create combined archive';
             }
 
+            $this->setProgress(100, 'Backup completed (local target)');
             return $response;
         }
 
-        $sftpHost = $data['sftp_host'] ?? null;
-        if (!is_string($sftpHost)) {
-            $sftpHost = '';
-        }
-        $sftpPort = $data['sftp_port'] ?? null;
-        if (is_int($sftpPort)) {
-            // ok
-        } elseif (is_string($sftpPort) && ctype_digit($sftpPort)) {
-            $sftpPort = (int) $sftpPort;
-        } else {
+        // else use SFTP to upload artifacts to remote backups dir and upload combined archive
+        $sftpHost = $data['sftp_host'] ?? '';
+        if (!is_string($sftpHost)) $sftpHost = '';
+        $sftpPort = $data['sftp_port'] ?? 22;
+        if (is_string($sftpPort) && ctype_digit($sftpPort)) {
+            $sftpPort = (int)$sftpPort;
+        } elseif (!is_int($sftpPort)) {
             $sftpPort = 22;
         }
-        $sftpUser = $data['sftp_user'] ?? null;
-        if (!is_string($sftpUser)) {
-            $sftpUser = '';
+        $sftpUser = $data['sftp_user'] ?? '';
+        if (!is_string($sftpUser)) $sftpUser = '';
+        $sftpPass = $data['sftp_pass'] ?? '';
+        if (!is_string($sftpPass)) $sftpPass = '';
+        $remoteBackups = ($remoteDir !== '') ? $remoteDir . '/' . $backupsRel : $backupsRel;
+
+        // ensure remote backups directory exists (best-effort via uploader creating dirs)
+        foreach ($artifacts as $a) {
+            $path = $a['path'];
+            $name = $a['name'];
+            $this->setProgress(70, 'Uploading ' . $name . '...', 'upload');
+            $this->sftpUpload($path, $remoteBackups . '/' . $name, $sftpHost, (int)$sftpPort, $sftpUser, $sftpPass);
         }
-        $sftpPass = $data['sftp_pass'] ?? null;
-        if (!is_string($sftpPass)) {
-            $sftpPass = '';
-        }
-        $remoteDir = $data['sftp_remote'] ?? null;
-        if (!is_string($remoteDir)) {
-            $remoteDir = '.';
-        }
-        $remoteDir = rtrim($remoteDir, '/');
 
-        $this->setProgress(70, 'Uploading database to SFTP...', 'upload_db');
-        $uplDB = $this->sftpUpload($dbFile, $remoteDir . '/' . basename($dbFile), $sftpHost, $sftpPort, $sftpUser, $sftpPass);
-
-        $this->setProgress(85, 'Uploading site archive...', 'upload_zip');
-        $uplZip = $this->sftpUpload($zipFile, $remoteDir . '/' . basename($zipFile), $sftpHost, $sftpPort, $sftpUser, $sftpPass);
-
-        $response['steps'][] = ['upload_db' => $uplDB];
-        $response['steps'][] = ['upload_site' => $uplZip];
-
-        $dbOk = $uplDB['ok'] ?? false;
-        $zipOk = $uplZip['ok'] ?? false;
-
-        if (! $dbOk || ! $zipOk) {
-            $msg = 'SFTP upload failed (see step status)';
-            $this->setProgress(90, 'Upload error (see details below)');
-            $response['errors'][] = $msg;
-            // add detailed messages if available
-            if (is_array($uplDB) && !empty($uplDB['message'])) {
-                $response['errors'][] = 'DB upload: ' . $uplDB['message'];
+        // create combined locally and upload
+        $rand = str_pad((string)rand(0, 999999), 6, '0', STR_PAD_LEFT);
+        $combinedName = 'backup_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $siteName) . '_' . date('YmdHis') . '_' . $rand . '.zip';
+        $combinedLocal = $this->tmpDir . '/' . $combinedName;
+        $zip = new \ZipArchive();
+        if ($zip->open($combinedLocal, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+            foreach ($artifacts as $a) {
+                $path = $a['path'];
+                $name = $a['name'];
+                if ($path !== '' && is_string($path) && file_exists($path)) $zip->addFile($path, $name);
             }
-            if (is_array($uplZip) && !empty($uplZip['message'])) {
-                $response['errors'][] = 'Site upload: ' . $uplZip['message'];
-            }
+            $zip->close();
+            $this->sftpUpload($combinedLocal, $remoteBackups . '/' . $combinedName, $sftpHost, (int)$sftpPort, $sftpUser, $sftpPass);
+            $response['steps'][] = ['combined' => $remoteBackups . '/' . $combinedName, 'local_copy' => $combinedLocal];
+            $this->setProgress(100, 'Backup completed (remote target)');
         } else {
-            $this->setProgress(100, 'Backup completed successfully!');
+            $response['errors'][] = 'Failed to create combined archive';
         }
-
         return $response;
     }
 

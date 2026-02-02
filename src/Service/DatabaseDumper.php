@@ -14,8 +14,6 @@ class DatabaseDumper
         $hostArg = escapeshellarg($host);
         $userArg = escapeshellarg($user);
         $nameArg = escapeshellarg($name);
-        $port = (int)$port;
-
         $cmd = "mysqldump --host={$hostArg} --port={$port} --user={$userArg} --single-transaction --quick --routines --triggers {$nameArg}";
 
         $descriptors = [
