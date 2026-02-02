@@ -21,9 +21,31 @@
 <h2>Steps</h2>
 <ul>
     <?php foreach($result['steps'] as $s): ?>
-        <li><?php echo htmlspecialchars(json_encode($s)); ?></li>
+        <li>
+            <?php
+            // Each step is an associative array; render keys and messages nicely
+            foreach ($s as $key => $val) {
+                if (is_array($val)) {
+                    $ok = !empty($val['ok']) ? 'ok' : 'failed';
+                    $msg = !empty($val['message']) ? ' — ' . htmlspecialchars($val['message']) : '';
+                    echo '<strong>' . htmlspecialchars($key) . '</strong>: ' . htmlspecialchars($ok) . $msg;
+                } else {
+                    // simple value (path or boolean)
+                    if (is_bool($val)) {
+                        echo '<strong>' . htmlspecialchars($key) . '</strong>: ' . ($val ? 'ok' : 'failed');
+                    } else {
+                        echo '<strong>' . htmlspecialchars($key) . '</strong>: ' . htmlspecialchars($val);
+                    }
+                }
+            }
+            ?>
+        </li>
     <?php endforeach; ?>
 </ul>
+<?php if (!empty($appLog)): ?>
+    <h2>Application log</h2>
+    <pre style="background:#f8f8f8;padding:10px;border:1px solid #ddd;white-space:pre-wrap;"><?php echo htmlspecialchars($appLog); ?></pre>
+<?php endif; ?>
 <p><a href="./">Back</a></p>
 </body>
 </html>
