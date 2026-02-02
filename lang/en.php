@@ -17,6 +17,8 @@ return [
     'run_button' => 'Run backup / migrate',
     'target_db_section_note' => 'If these are provided, a dump of the target DB will be included in the final backup.'
     ,
+    'paths' => 'Paths',
+    
     // result / UI
     'result_title' => 'Backup result',
     'errors' => 'Errors',

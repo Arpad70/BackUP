@@ -17,6 +17,8 @@ return [
     'run_button' => 'Spustit zálohu / migraci',
     'target_db_section_note' => 'Pokud jsou tyto údaje poskytnuty, dump cílové DB bude zahrnut do finální zálohy.'
     ,
+    'paths' => 'Cesty',
+    
     // result / UI
     'result_title' => 'Výsledek zálohy',
     'errors' => 'Chyby',

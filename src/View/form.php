@@ -103,23 +103,23 @@
             <div class="row g-2">
               <div class="col-md-6">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
-                <input name="db_host" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_host'] ?? '127.0.0.1') ?>">
+                <input name="db_host" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_host_placeholder')) ?>" value="<?= htmlspecialchars($db_config['db_host'] ?? '127.0.0.1') ?>">
               </div>
               <div class="col-md-6">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
-                <input name="db_port" type="text" class="form-control" value="3306">
+                <input name="db_port" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_port_placeholder')) ?>" value="3306">
               </div>
               <div class="col-md-12">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
-                <input name="db_user" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_user'] ?? '') ?>">
+                <input name="db_user" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_user_placeholder')) ?>" value="<?= htmlspecialchars($db_config['db_user'] ?? '') ?>">
               </div>
               <div class="col-md-12">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('password')) ?></label>
-                <input name="db_pass" type="password" class="form-control" value="<?= htmlspecialchars($db_config['db_password'] ?? '') ?>">
+                <input name="db_pass" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_password_placeholder')) ?>" value="<?= htmlspecialchars($db_config['db_password'] ?? '') ?>">
               </div>
               <div class="col-md-12">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('database_name')) ?></label>
-                <input name="db_name" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_name'] ?? '') ?>">
+                <input name="db_name" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_name_placeholder')) ?>" value="<?= htmlspecialchars($db_config['db_name'] ?? '') ?>">
               </div>
             </div>
           </div>
@@ -131,23 +131,23 @@
             <div class="row g-2">
               <div class="col-md-6">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('db_host_placeholder')) ?></label>
-                <input name="target_db_host" class="form-control" placeholder="host">
+                <input name="target_db_host" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_host_placeholder')) ?>">
               </div>
               <div class="col-md-6">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('db_port_placeholder')) ?></label>
-                <input name="target_db_port" class="form-control" placeholder="3306">
+                <input name="target_db_port" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_port_placeholder')) ?>">
               </div>
               <div class="col-md-12">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('db_user_placeholder')) ?></label>
-                <input name="target_db_user" class="form-control" placeholder="user">
+                <input name="target_db_user" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_user_placeholder')) ?>">
               </div>
               <div class="col-md-12">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('db_password_placeholder')) ?></label>
-                <input name="target_db_pass" type="password" class="form-control" placeholder="password">
+                <input name="target_db_pass" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_password_placeholder')) ?>">
               </div>
               <div class="col-md-12">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('db_name_placeholder')) ?></label>
-                <input name="target_db_name" class="form-control" placeholder="database_name">
+                <input name="target_db_name" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_name_placeholder')) ?>">
               </div>
             </div>
             <div class="form-text mt-3"><?= htmlspecialchars($translator->translate('target_db_section_note')) ?></div>
@@ -171,7 +171,7 @@
               </div>
               <div class="col-md-3">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
-                <input name="sftp_user" class="form-control" placeholder="user">
+                <input name="sftp_user" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('user')) ?>">
               </div>
               <div class="col-md-3">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('remote_dir')) ?></label>
