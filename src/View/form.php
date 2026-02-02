@@ -69,12 +69,12 @@
         <h5 class="mb-3"><?= htmlspecialchars($translator->translate('paths') ?? 'Cesty') ?></h5>
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label"><?= htmlspecialchars($translator->translate('source_site_path')) ?></label>
-            <input id="site_path" name="site_path" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_site_path_placeholder')) ?>" value="<?= htmlspecialchars($db_config['site_path'] ?? '') ?>">
+            <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_source_site_path')) ?>"><?= htmlspecialchars($translator->translate('source_site_path')) ?></label>
+            <input id="site_path" name="site_path" type="text" class="form-control" title="<?= htmlspecialchars($translator->translate('help_source_site_path')) ?>" placeholder="<?= htmlspecialchars($translator->translate('example_site_path_placeholder')) ?>" value="<?= htmlspecialchars($db_config['site_path'] ?? '') ?>">
           </div>
           <div class="col-md-6">
-            <label class="form-label"><?= htmlspecialchars($translator->translate('target_site_path')) ?></label>
-            <input id="target_site_path" name="target_site_path" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_target_site_placeholder')) ?>">
+            <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_target_site_path')) ?>"><?= htmlspecialchars($translator->translate('target_site_path')) ?></label>
+            <input id="target_site_path" name="target_site_path" type="text" class="form-control" title="<?= htmlspecialchars($translator->translate('help_target_site_path')) ?>" placeholder="<?= htmlspecialchars($translator->translate('example_target_site_placeholder')) ?>">
             <div class="form-text"><?= htmlspecialchars($translator->translate('files_will_be_copied')) ?></div>
           </div>
         </div>
@@ -87,24 +87,24 @@
             <h5><?= htmlspecialchars($translator->translate('database') ?? 'Zdrojová databáze') ?></h5>
             <div class="row g-2">
               <div class="col-md-6">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
-                <input name="db_host" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_host_placeholder')) ?>" value="<?= htmlspecialchars($db_config['db_host'] ?? '127.0.0.1') ?>">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_db_host')) ?>"><?= htmlspecialchars($translator->translate('host')) ?></label>
+                <input name="db_host" type="text" class="form-control" title="<?= htmlspecialchars($translator->translate('help_db_host')) ?>" placeholder="<?= htmlspecialchars($translator->translate('db_host_placeholder')) ?>" value="<?= htmlspecialchars($db_config['db_host'] ?? '127.0.0.1') ?>">
               </div>
               <div class="col-md-6">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
-                <input name="db_port" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_port_placeholder')) ?>" value="3306">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_db_port')) ?>"><?= htmlspecialchars($translator->translate('port')) ?></label>
+                <input name="db_port" type="text" class="form-control" title="<?= htmlspecialchars($translator->translate('help_db_port')) ?>" placeholder="<?= htmlspecialchars($translator->translate('db_port_placeholder')) ?>" value="3306">
               </div>
               <div class="col-md-12">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
-                <input name="db_user" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_user_placeholder')) ?>" value="<?= htmlspecialchars($db_config['db_user'] ?? '') ?>">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_db_user')) ?>"><?= htmlspecialchars($translator->translate('user')) ?></label>
+                <input name="db_user" type="text" class="form-control" title="<?= htmlspecialchars($translator->translate('help_db_user')) ?>" placeholder="<?= htmlspecialchars($translator->translate('db_user_placeholder')) ?>" value="<?= htmlspecialchars($db_config['db_user'] ?? '') ?>">
               </div>
               <div class="col-md-12">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('password')) ?></label>
-                <input name="db_pass" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_password_placeholder')) ?>" value="<?= htmlspecialchars($db_config['db_password'] ?? '') ?>">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_db_password')) ?>"><?= htmlspecialchars($translator->translate('password')) ?></label>
+                <input name="db_pass" type="password" class="form-control" title="<?= htmlspecialchars($translator->translate('help_db_password')) ?>" placeholder="<?= htmlspecialchars($translator->translate('db_password_placeholder')) ?>" value="<?= htmlspecialchars($db_config['db_password'] ?? '') ?>">
               </div>
               <div class="col-md-12">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('database_name')) ?></label>
-                <input name="db_name" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_name_placeholder')) ?>" value="<?= htmlspecialchars($db_config['db_name'] ?? '') ?>">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_db_name')) ?>"><?= htmlspecialchars($translator->translate('database_name')) ?></label>
+                <input name="db_name" type="text" class="form-control" title="<?= htmlspecialchars($translator->translate('help_db_name')) ?>" placeholder="<?= htmlspecialchars($translator->translate('db_name_placeholder')) ?>" value="<?= htmlspecialchars($db_config['db_name'] ?? '') ?>">
               </div>
             </div>
           </div>
@@ -115,24 +115,24 @@
             <h5><?= htmlspecialchars($translator->translate('target_site_db_heading')) ?></h5>
             <div class="row g-2">
               <div class="col-md-6">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
-                <input name="target_db_host" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_host_placeholder')) ?>">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_target_db_host')) ?>"><?= htmlspecialchars($translator->translate('host')) ?></label>
+                <input name="target_db_host" class="form-control" title="<?= htmlspecialchars($translator->translate('help_target_db_host')) ?>" placeholder="<?= htmlspecialchars($translator->translate('db_host_placeholder')) ?>">
               </div>
               <div class="col-md-6">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
-                <input name="target_db_port" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_port_placeholder')) ?>">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_target_db_port')) ?>"><?= htmlspecialchars($translator->translate('port')) ?></label>
+                <input name="target_db_port" class="form-control" title="<?= htmlspecialchars($translator->translate('help_target_db_port')) ?>" placeholder="<?= htmlspecialchars($translator->translate('db_port_placeholder')) ?>">
               </div>
               <div class="col-md-12">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
-                <input name="target_db_user" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_user_placeholder')) ?>">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_target_db_user')) ?>"><?= htmlspecialchars($translator->translate('user')) ?></label>
+                <input name="target_db_user" class="form-control" title="<?= htmlspecialchars($translator->translate('help_target_db_user')) ?>" placeholder="<?= htmlspecialchars($translator->translate('db_user_placeholder')) ?>">
               </div>
               <div class="col-md-12">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('password')) ?></label>
-                <input name="target_db_pass" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_password_placeholder')) ?>">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_target_db_password')) ?>"><?= htmlspecialchars($translator->translate('password')) ?></label>
+                <input name="target_db_pass" type="password" class="form-control" title="<?= htmlspecialchars($translator->translate('help_target_db_password')) ?>" placeholder="<?= htmlspecialchars($translator->translate('db_password_placeholder')) ?>">
               </div>
               <div class="col-md-12">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('database_name')) ?></label>
-                <input name="target_db_name" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_name_placeholder')) ?>">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_target_db_name')) ?>"><?= htmlspecialchars($translator->translate('database_name')) ?></label>
+                <input name="target_db_name" class="form-control" title="<?= htmlspecialchars($translator->translate('help_target_db_name')) ?>" placeholder="<?= htmlspecialchars($translator->translate('db_name_placeholder')) ?>">
               </div>
             </div>
             <div class="form-text mt-3"><?= htmlspecialchars($translator->translate('target_db_section_note')) ?></div>
@@ -147,20 +147,20 @@
             <h5><?= htmlspecialchars($translator->translate('sftp_section')) ?></h5>
             <div class="row g-2">
               <div class="col-md-4">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
-                <input name="sftp_host" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_sftp_host')) ?>">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_sftp_host')) ?>"><?= htmlspecialchars($translator->translate('host')) ?></label>
+                <input name="sftp_host" class="form-control" title="<?= htmlspecialchars($translator->translate('help_sftp_host')) ?>" placeholder="<?= htmlspecialchars($translator->translate('example_sftp_host')) ?>">
               </div>
               <div class="col-md-2">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
-                <input name="sftp_port" class="form-control" value="22">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_sftp_port')) ?>"><?= htmlspecialchars($translator->translate('port')) ?></label>
+                <input name="sftp_port" class="form-control" title="<?= htmlspecialchars($translator->translate('help_sftp_port')) ?>" value="22">
               </div>
               <div class="col-md-3">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
-                <input name="sftp_user" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('user')) ?>">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_sftp_user')) ?>"><?= htmlspecialchars($translator->translate('user')) ?></label>
+                <input name="sftp_user" class="form-control" title="<?= htmlspecialchars($translator->translate('help_sftp_user')) ?>" placeholder="<?= htmlspecialchars($translator->translate('user')) ?>">
               </div>
               <div class="col-md-3">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('remote_dir')) ?></label>
-                <input name="sftp_remote" class="form-control" placeholder="/backups" value="/backups">
+                <label class="form-label" title="<?= htmlspecialchars($translator->translate('help_sftp_remote')) ?>"><?= htmlspecialchars($translator->translate('remote_dir')) ?></label>
+                <input name="sftp_remote" class="form-control" title="<?= htmlspecialchars($translator->translate('help_sftp_remote')) ?>" placeholder="/backups" value="/backups">
               </div>
             </div>
 
@@ -176,13 +176,13 @@
             </div>
 
             <div id="sftp-password-fields" class="mt-3">
-              <input name="sftp_pass" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('sftp_password_placeholder')) ?>">
+              <input name="sftp_pass" class="form-control" title="<?= htmlspecialchars($translator->translate('help_sftp_password')) ?>" placeholder="<?= htmlspecialchars($translator->translate('sftp_password_placeholder')) ?>">
             </div>
 
             <div id="sftp-key-fields" class="mt-3" style="display:none;">
-              <textarea name="sftp_key" rows="6" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('sftp_auth_key')) ?>"></textarea>
-              <div class="mt-2"><input name="sftp_key_file" type="file" class="form-control" accept=".pem,.key,text/plain"></div>
-              <div class="mt-2"><input name="sftp_key_passphrase" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('key_passphrase_optional')) ?>"></div>
+              <textarea name="sftp_key" rows="6" class="form-control" title="<?= htmlspecialchars($translator->translate('help_sftp_key')) ?>" placeholder="<?= htmlspecialchars($translator->translate('sftp_auth_key')) ?>"></textarea>
+              <div class="mt-2"><input name="sftp_key_file" type="file" class="form-control" title="<?= htmlspecialchars($translator->translate('help_sftp_key')) ?>" accept=".pem,.key,text/plain"></div>
+              <div class="mt-2"><input name="sftp_key_passphrase" type="password" class="form-control" title="<?= htmlspecialchars($translator->translate('help_sftp_passphrase')) ?>" placeholder="<?= htmlspecialchars($translator->translate('key_passphrase_optional')) ?>"></div>
               <div class="form-text mt-2"><?= htmlspecialchars($translator->translate('private_key_notice')) ?></div>
             </div>
           </div>
@@ -275,6 +275,35 @@ document.querySelectorAll('input[name="sftp_auth"]').forEach(function(r){
         var mode = document.querySelector('input[name="sftp_auth"]:checked').value;
         document.getElementById('sftp-password-fields').style.display = (mode === 'password') ? 'block' : 'none';
         document.getElementById('sftp-key-fields').style.display = (mode === 'key') ? 'block' : 'none';
+    });
+});
+
+// Initialize Bootstrap tooltips for all elements with title attribute
+document.addEventListener('DOMContentLoaded', function() {
+    // Tooltips on hover
+    document.querySelectorAll('[title]').forEach(function(el) {
+        el.addEventListener('mouseenter', function() {
+            if (this.title) {
+                // Create tooltip
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip-box';
+                tooltip.textContent = this.title;
+                tooltip.style.cssText = 'position: fixed; background: #333; color: #fff; padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 9999; max-width: 300px; word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.15);';
+                
+                const rect = this.getBoundingClientRect();
+                tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+                tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
+                
+                document.body.appendChild(tooltip);
+                
+                const removeTooltip = () => {
+                    if (tooltip.parentNode) tooltip.parentNode.removeChild(tooltip);
+                };
+                
+                el.addEventListener('mouseleave', removeTooltip, { once: true });
+                el.addEventListener('click', removeTooltip, { once: true });
+            }
+        });
     });
 });
 </script>

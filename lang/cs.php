@@ -88,5 +88,26 @@ return [
     'example_site_path_placeholder' => '/var/www/html/example.com',
     'example_target_site_placeholder' => '/var/www/html/example-target.com',
     'example_sftp_host' => 'sftp.example.com',
-    'key_passphrase_optional' => 'Passphrase klíče (volitelné)'
+    'key_passphrase_optional' => 'Passphrase klíče (volitelné)',
+    
+    // tooltips / help texts
+    'help_source_site_path' => 'Absolutní cesta k webovému adresáři na zdrojovém serveru',
+    'help_target_site_path' => 'Absolutní cesta k cílovému adresáři. Pokud není zadána, použije se SFTP.',
+    'help_db_host' => 'Adresa databázového serveru (localhost, IP adresa, nebo doména)',
+    'help_db_port' => 'Port databázového serveru (obvykle 3306 pro MySQL)',
+    'help_db_user' => 'Uživatelské jméno pro připojení k databázi',
+    'help_db_password' => 'Heslo pro databázový uživatel',
+    'help_db_name' => 'Název databáze, kterou chcete zálohovat',
+    'help_target_db_host' => 'Host cílové databáze (volitelné)',
+    'help_target_db_port' => 'Port cílové databáze',
+    'help_target_db_user' => 'Uživatel cílové databáze',
+    'help_target_db_password' => 'Heslo cílové databáze',
+    'help_target_db_name' => 'Název cílové databáze',
+    'help_sftp_host' => 'Adresa SFTP serveru',
+    'help_sftp_port' => 'SFTP port (obvykle 22)',
+    'help_sftp_user' => 'SFTP uživatelské jméno',
+    'help_sftp_remote' => 'Vzdálený adresář na SFTP serveru, kam se nahrajou zálohy',
+    'help_sftp_password' => 'SFTP heslo pro ověření',
+    'help_sftp_key' => 'Soukromý SSH klíč pro ověření (vložit obsah nebo nahrát soubor)',
+    'help_sftp_passphrase' => 'Heslo k soukromému klíči (pokud je chráněn)'
 ];

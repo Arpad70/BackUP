@@ -88,5 +88,26 @@ return [
     'example_site_path_placeholder' => '/var/www/html/example.com',
     'example_target_site_placeholder' => '/var/www/html/example-target.com',
     'example_sftp_host' => 'sftp.example.com',
-    'key_passphrase_optional' => 'Key passphrase (optional)'
+    'key_passphrase_optional' => 'Key passphrase (optional)',
+    
+    // tooltips / help texts
+    'help_source_site_path' => 'Absolute path to the web directory on the source server',
+    'help_target_site_path' => 'Absolute path to the target directory. If not provided, SFTP will be used.',
+    'help_db_host' => 'Database server address (localhost, IP address, or domain)',
+    'help_db_port' => 'Database server port (usually 3306 for MySQL)',
+    'help_db_user' => 'Username for database connection',
+    'help_db_password' => 'Password for the database user',
+    'help_db_name' => 'Name of the database to backup',
+    'help_target_db_host' => 'Target database host (optional)',
+    'help_target_db_port' => 'Target database port',
+    'help_target_db_user' => 'Target database user',
+    'help_target_db_password' => 'Target database password',
+    'help_target_db_name' => 'Target database name',
+    'help_sftp_host' => 'SFTP server address',
+    'help_sftp_port' => 'SFTP port (usually 22)',
+    'help_sftp_user' => 'SFTP username',
+    'help_sftp_remote' => 'Remote directory on SFTP server where backups will be uploaded',
+    'help_sftp_password' => 'SFTP password for authentication',
+    'help_sftp_key' => 'Private SSH key for authentication (paste content or upload file)',
+    'help_sftp_passphrase' => 'Passphrase for the private key (if protected)'
 ];
