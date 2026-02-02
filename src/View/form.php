@@ -42,7 +42,7 @@
         .section-target-db { border-left-color: #ca8a04; background-color: #fef3c7; }
         .section-target-db h5 { color: #92400e; }
         
-        .section-sftp { border-left-color: #dc2626; background-color: #fee2e2; margin-top: 2rem; }
+        .section-sftp { border-left-color: #dc2626; background-color: #fee2e2; }
         .section-sftp h5 { color: #7f1d1d; }
         
         .section-actions { text-align: center; padding-top: 1rem; }
