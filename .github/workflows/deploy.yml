@@ -1,0 +1,53 @@
+name: Deploy to backup.eshopion.eu
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    name: Deploy to remote server via SSH
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install rsync
+        run: sudo apt-get update && sudo apt-get install -y rsync
+
+      - name: Setup SSH key
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Ensure remote host known
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Rsync files to server
+        run: |
+          RSYNC_EXCLUDE='--exclude .git --exclude tests --exclude .github'
+          rsync -avz -e "ssh -p ${{ secrets.DEPLOY_PORT }}" $RSYNC_EXCLUDE ./ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}
+
+      - name: Run remote post-deploy tasks
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            set -e
+            # ensure permissions
+            chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} "${{ secrets.DEPLOY_PATH }}"
+            find "${{ secrets.DEPLOY_PATH }}" -type d -exec chmod 755 {} +
+            find "${{ secrets.DEPLOY_PATH }}" -type f -exec chmod 644 {} +
+            # optional: create simple index listing (if no web index exists)
+            if [ ! -f "${{ secrets.DEPLOY_PATH }}/index.html" ]; then
+              echo "<html><body><h1>Backups</h1><pre>" > /tmp/listing.html
+              ls -la "${{ secrets.DEPLOY_PATH }}" >> /tmp/listing.html
+              echo "</pre></body></html>" >> /tmp/listing.html
+              mv /tmp/listing.html "${{ secrets.DEPLOY_PATH }}/index.html"
+              chmod 644 "${{ secrets.DEPLOY_PATH }}/index.html"
+            fi
