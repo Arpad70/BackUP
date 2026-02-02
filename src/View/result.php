@@ -14,7 +14,8 @@ if (!isset($appLog)) {
 <html>
 <head><meta charset="utf-8"><title>Backup result</title></head>
 <body>
-<h1>Backup result</h1>
+<div class="container py-4">
+    <h1 class="mb-3">Backup result</h1>
 <?php if (!empty($result['errors'])): ?>
     <div style="color:red"><strong>Errors:</strong>
         <ul><?php foreach($result['errors'] as $e) echo '<li>'.htmlspecialchars($e).'</li>'; ?></ul>

@@ -122,6 +122,39 @@ class BackupModel
         }
         $this->setProgress(65, 'Files compressed');
 
+        // If a target site path is provided, perform a local copy instead of SFTP upload
+        $targetPath = $data['target_site_path'] ?? null;
+        if (is_string($targetPath) && $targetPath !== '') {
+            $this->setProgress(70, 'Copying files to target path...', 'local_copy');
+            // ensure parent exists
+            if (!is_dir($targetPath)) {
+                if (!@mkdir($targetPath, 0755, true)) {
+                    $response['errors'][] = 'Failed to create target path: ' . $targetPath;
+                    $this->setProgress(80, 'Error creating target path');
+                    return $response;
+                }
+            }
+
+            $copyOk = $this->recursiveCopy($sitePath, $targetPath);
+            // copy db dump and zip into a backups subdir
+            $backupsDir = rtrim($targetPath, '/') . '/backups';
+            if (!is_dir($backupsDir)) {@mkdir($backupsDir, 0755, true);} 
+            $dbCopy = @copy($dbFile, $backupsDir . '/' . basename($dbFile));
+            $zipCopy = @copy($zipFile, $backupsDir . '/' . basename($zipFile));
+
+            $response['steps'][] = ['local_copy' => ['ok' => $copyOk, 'message' => $copyOk ? 'Site copied' : 'Site copy failed']];
+            $response['steps'][] = ['local_backups' => ['db' => $dbCopy, 'zip' => $zipCopy]];
+
+            if ($copyOk && $dbCopy && $zipCopy) {
+                $this->setProgress(100, 'Local copy completed successfully');
+            } else {
+                $response['errors'][] = 'Local copy encountered errors';
+                $this->setProgress(90, 'Local copy errors (see details)');
+            }
+
+            return $response;
+        }
+
         $sftpHost = $data['sftp_host'] ?? null;
         if (!is_string($sftpHost)) {
             $sftpHost = '';
@@ -221,6 +254,42 @@ class BackupModel
 
         $zip->close();
         return file_exists($destination);
+    }
+
+    /**
+     * Recursively copy directory contents from source to destination.
+     */
+    public function recursiveCopy(string $source, string $dest): bool
+    {
+        $sourceReal = realpath($source);
+        if ($sourceReal === false) return false;
+
+        // create destination if needed
+        if (!is_dir($dest)) {
+            if (!@mkdir($dest, 0755, true)) {
+                return false;
+            }
+        }
+
+        $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($sourceReal, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::SELF_FIRST);
+        foreach ($it as $item) {
+            /** @var \SplFileInfo $item */
+            $targetPath = rtrim($dest, '/') . '/' . ltrim(str_replace($sourceReal, '', $item->getRealPath()), '/');
+            if ($item->isDir()) {
+                if (!is_dir($targetPath)) {
+                    @mkdir($targetPath, 0755, true);
+                }
+            } else {
+                // copy file
+                if (!@copy($item->getRealPath(), $targetPath)) {
+                    return false;
+                }
+                // try to preserve perms
+                @chmod($targetPath, $item->getPerms() & 0777);
+            }
+        }
+
+        return true;
     }
 
     /**

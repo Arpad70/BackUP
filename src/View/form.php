@@ -1,171 +1,140 @@
 <!doctype html>
-<html>
+<html lang="cs">
 <head>
     <meta charset="utf-8">
-    <title>Backup MVC — run backup</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BackUP — Migrate / Backup</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: Arial, Helvetica, sans-serif; max-width: 900px; margin: 20px; }
-        label { display: block; margin-top: 10px; }
-        input[type=text], input[type=password] { width: 100%; padding: 6px; }
-        .success { color: green; padding: 10px; border: 1px solid green; margin-bottom: 12px; }
-        .error { color: red; padding: 10px; border: 1px solid red; margin-bottom: 12px; }
-        .progress-container { display: none; text-align: center; margin: 20px 0; }
-        .progress-container.show { display: block; }
-        .progress-bar { width: 100%; height: 30px; border: 1px solid #ccc; border-radius: 5px; overflow: hidden; background-color: #f0f0f0; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #4CAF50, #45a049); width: 0%; transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
-        #backupForm.processing { opacity: 0.6; pointer-events: none; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { padding: 2rem; }
+        .card { max-width: 1100px; margin: 0 auto; }
+        .progress-fill { transition: width .3s; }
     </style>
 </head>
 <body>
-<h1>Backup — DB dump, site zip and SFTP</h1>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h1 class="card-title mb-3">BackUP — migrate or backup site</h1>
 
-<?php if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !empty($_POST)): ?>
-    <div class="error">
-        Form was submitted but you're viewing the form again. Please check the Steps below or server logs.
-    </div>
-<?php endif; ?>
-<?php if (isset($env) && is_array($env)): ?>
-    <div style="padding:10px;border:1px solid #ccc;margin-bottom:12px;">
-        <strong>Environment check:</strong>
-        <ul>
-            <li>mysqldump: <?php echo $env['mysqldump'] ? '<span style="color:green">found</span>' : '<span style="color:red">missing</span>'; ?></li>
-            <li>PHP Zip extension: <?php echo $env['zip_ext'] ? '<span style="color:green">loaded</span>' : '<span style="color:red">missing</span>'; ?></li>
-            <li>phpseclib (composer): <?php echo $env['phpseclib'] ? '<span style="color:green">available</span>' : '<span style="color:orange">not installed</span>'; ?></li>
-            <li>ssh2 extension: <?php echo $env['ssh2_ext'] ? '<span style="color:green">available</span>' : '<span style="color:orange">not available</span>'; ?></li>
-            <li>Temp dir writable: <?php echo $env['tmp_writable'] ? '<span style="color:green">yes</span>' : '<span style="color:red">no</span>'; ?></li>
-        </ul>
-        <?php if (!$env['mysqldump'] || !$env['zip_ext'] || !$env['tmp_writable']): ?>
-            <div style="color:red">Critical tools missing — the backup will not run until these are fixed.</div>
-        <?php else: ?>
-            <div style="color:green">Environment looks sufficient for running backups.</div>
-        <?php endif; ?>
-    </div>
-<?php endif; ?>
+    <?php if (isset($env) && is_array($env)): ?>
+      <div class="mb-3">
+        <div class="d-flex gap-3 flex-wrap">
+          <div class="badge bg-<?= $env['mysqldump'] ? 'success' : 'danger' ?>">mysqldump: <?= $env['mysqldump'] ? 'OK' : 'missing' ?></div>
+          <div class="badge bg-<?= $env['zip_ext'] ? 'success' : 'danger' ?>">zip ext: <?= $env['zip_ext'] ? 'OK' : 'missing' ?></div>
+          <div class="badge bg-<?= $env['phpseclib'] ? 'success' : 'warning' ?>">phpseclib: <?= $env['phpseclib'] ? 'available' : 'not installed' ?></div>
+          <div class="badge bg-<?= $env['ssh2_ext'] ? 'success' : 'warning' ?>">ssh2: <?= $env['ssh2_ext'] ? 'available' : 'not available' ?></div>
+          <div class="badge bg-<?= $env['tmp_writable'] ? 'success' : 'danger' ?>">tmp writable: <?= $env['tmp_writable'] ? 'yes' : 'no' ?></div>
+        </div>
+      </div>
+    <?php endif; ?>
 
-<div id="progressContainer" class="progress-container">
-    <div class="spinner"></div>
-    <p><strong>Backup in progress...</strong></p>
-    <p>This may take a few minutes depending on database and site size.</p>
-    <div class="progress-bar">
-        <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
-    </div>
-    <p id="progressText">Preparing...</p>
+    <form id="backupForm" method="post" enctype="multipart/form-data">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Source site path (absolute)</label>
+          <input id="site_path" name="site_path" type="text" class="form-control" placeholder="/var/www/html/example.com" value="<?= htmlspecialchars($db_config['site_path'] ?? '') ?>">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Target site path (absolute) — optional</label>
+          <input id="target_site_path" name="target_site_path" type="text" class="form-control" placeholder="/var/www/html/example-target.com">
+          <div class="form-text">If provided, files will be copied locally from source to target (no SFTP needed).</div>
+        </div>
+
+        <div class="col-md-6">
+          <h5 class="mt-3">Database</h5>
+          <label class="form-label">Host</label>
+          <input name="db_host" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_host'] ?? '127.0.0.1') ?>">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Port</label>
+          <input name="db_port" type="text" class="form-control" value="3306">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">User</label>
+          <input name="db_user" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_user'] ?? '') ?>">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Password</label>
+          <input name="db_pass" type="password" class="form-control" value="<?= htmlspecialchars($db_config['db_password'] ?? '') ?>">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Database name</label>
+          <input name="db_name" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_name'] ?? '') ?>">
+        </div>
+
+        <div class="col-12">
+          <h5 class="mt-3">SFTP (optional, only if Target path not provided)</h5>
+          <div class="row g-2">
+            <div class="col-md-4"><input name="sftp_host" class="form-control" placeholder="sftp.example.com"></div>
+            <div class="col-md-2"><input name="sftp_port" class="form-control" value="22"></div>
+            <div class="col-md-3"><input name="sftp_user" class="form-control" placeholder="user"></div>
+            <div class="col-md-3"><input name="sftp_remote" class="form-control" placeholder="/backups" value="/backups"></div>
+          </div>
+
+          <div class="mt-2">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="sftp_auth" id="sftpAuthPass" value="password" checked>
+              <label class="form-check-label" for="sftpAuthPass">Password</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="sftp_auth" id="sftpAuthKey" value="key">
+              <label class="form-check-label" for="sftpAuthKey">Key (paste or upload)</label>
+            </div>
+          </div>
+
+          <div id="sftp-password-fields" class="mt-2">
+            <input name="sftp_pass" class="form-control" placeholder="SFTP password">
+          </div>
+
+          <div id="sftp-key-fields" class="mt-2" style="display:none;">
+            <textarea name="sftp_key" rows="6" class="form-control" placeholder="Paste private key here"></textarea>
+            <div class="mt-2"><input name="sftp_key_file" type="file" class="form-control" accept=".pem,.key,text/plain"></div>
+            <div class="mt-2"><input name="sftp_key_passphrase" type="password" class="form-control" placeholder="Key passphrase (optional)"></div>
+            <div class="form-text mt-1">Uploaded key is read and removed immediately; it will not be stored.</div>
+          </div>
+        </div>
+
+        <div class="col-12 d-flex justify-content-end mt-3">
+          <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Run backup / migrate</button>
+        </div>
+      </div>
+    </form>
+  </div>
 </div>
 
-<form method="post" id="backupForm" enctype="multipart/form-data">
-    <h2>Database</h2>
-    <label>Host <input name="db_host" type="text" value="<?php echo htmlspecialchars($db_config['db_host'] ?? '127.0.0.1'); ?>"></label>
-    <label>Port <input name="db_port" type="text" value="3306"></label>
-    <label>User <input name="db_user" type="text" value="<?php echo htmlspecialchars($db_config['db_user'] ?? ''); ?>"></label>
-    <label>Password <input name="db_pass" type="password" value="<?php echo htmlspecialchars($db_config['db_password'] ?? ''); ?>"></label>
-    <label>Database name <input name="db_name" type="text" value="<?php echo htmlspecialchars($db_config['db_name'] ?? ''); ?>"></label>
-
-    <h2>Site</h2>
-    <label>Site path (absolute) <input id="site_path" name="site_path" type="text" placeholder="/var/www/html/example.com"></label>
-    <div id="sitePathStatus" style="color:gray;font-size:90%;margin-top:6px;">Leave the absolute path to auto-fill DB settings from wp-config.php</div>
-
-    <h2>SFTP target</h2>
-    <label>SFTP host <input name="sftp_host" type="text"></label>
-    <label>Port <input name="sftp_port" type="text" value="22"></label>
-    <label>User <input name="sftp_user" type="text"></label>
-
-    <div style="margin-top:8px">
-        <label><input type="radio" name="sftp_auth" value="password" checked> Password authentication</label>
-        <label><input type="radio" name="sftp_auth" value="key"> Key-based authentication (paste private key)</label>
-    </div>
-
-    <div id="sftp-password-fields">
-        <label>Password <input name="sftp_pass" type="password"></label>
-    </div>
-
-    <div id="sftp-key-fields" style="display:none;">
-        <label>Private key (PEM/OPENSSH) — paste contents here
-            <textarea name="sftp_key" rows="8" style="width:100%;font-family:monospace"></textarea>
-        </label>
-        <label>Or upload private key file <input name="sftp_key_file" type="file" accept=".pem,.key,text/plain"></label>
-        <label>Key passphrase (optional) <input name="sftp_key_passphrase" type="password"></label>
-        <div style="font-size:90%;color:#666;margin-top:6px;">Do not store private keys in logs or database. This upload is read-only and the file is removed after processing.</div>
-    </div>
-
-    <label>Remote directory <input name="sftp_remote" type="text" value="/backups"></label>
-
-    <p><button type="submit" id="submitBtn">Run backup</button></p>
-    <p style="color:gray">Note: this script calls `mysqldump` and requires Zip extension. For SFTP upload it prefers phpseclib (composer) or ssh2 extension.</p>
-</form>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-let progressFile = '';
-let progressPollInterval = null;
-
-document.getElementById('backupForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const progressContainer = document.getElementById('progressContainer');
-    const progressFill = document.getElementById('progressFill');
-    const progressText = document.getElementById('progressText');
-    const form = document.getElementById('backupForm');
-    
-    // Generate unique progress file name
-    const timestamp = Math.floor(Math.random() * 100000000);
-    progressFile = 'backup_progress_' + timestamp + '.json';
-    
-    progressContainer.classList.add('show');
-    form.classList.add('processing');
-    
-    // Start polling for progress updates
-    startProgressPolling(progressFile, progressFill, progressText);
-    
-    // Submit form via AJAX
-    const formData = new FormData(this);
-    
-    fetch(window.location.href, {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.text())
-    .then(html => {
-        clearInterval(progressPollInterval);
-        progressFill.style.width = '100%';
-        document.body.innerHTML = html;
-    })
-    .catch(error => {
-        clearInterval(progressPollInterval);
-        progressText.textContent = 'Error: ' + error.message;
-        form.classList.remove('processing');
+// Toggle SFTP auth fields
+document.querySelectorAll('input[name="sftp_auth"]').forEach(function(r){
+    r.addEventListener('change', function(){
+        var mode = document.querySelector('input[name="sftp_auth"]:checked').value;
+        document.getElementById('sftp-password-fields').style.display = (mode === 'password') ? 'block' : 'none';
+        document.getElementById('sftp-key-fields').style.display = (mode === 'key') ? 'block' : 'none';
     });
 });
 
-function startProgressPolling(fileName, progressFill, progressText) {
-    progressPollInterval = setInterval(() => {
-        fetch('progress.php?file=' + encodeURIComponent(fileName))
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.progress !== undefined) {
-                    progressFill.style.width = data.progress + '%';
-                    progressText.textContent = data.message || 'Processing...';
-                    if (data.step) {
-                        progressText.textContent += ' (' + data.step + ')';
-                    }
-                }
-            })
-            .catch(err => console.log('Progress update error (expected at start):', err.message));
-    }, 500);
+// If target path provided, hide SFTP section
+var targetInput = document.getElementById('target_site_path');
+if (targetInput) {
+    targetInput.addEventListener('input', function(){
+        var val = this.value.trim();
+        var sftpSection = document.querySelector('h5.mt-3 + div');
+        if (val !== '') {
+            // hide sftp fields
+            document.querySelectorAll('[name^="sftp_"]').forEach(function(el){ if(el.closest) el.closest('div').style.display='none'; });
+        } else {
+            document.querySelectorAll('[name^="sftp_"]').forEach(function(el){ if(el.closest) el.closest('div').style.display='block'; });
+        }
+    });
 }
 
 // Auto-fetch WP DB settings when user provides an absolute site path
 (function(){
     const input = document.getElementById('site_path');
-    const status = document.getElementById('sitePathStatus');
-    if (!input) return;
+    const statusEl = document.createElement('div');
+    input.parentNode.appendChild(statusEl);
     let timer = null;
-
-    function setStatus(text, color) {
-        status.textContent = text;
-        if (color) status.style.color = color; else status.style.color = 'gray';
-    }
-
+    function setStatus(text, color) { statusEl.textContent = text; statusEl.style.color = color || 'gray'; }
     function fetchWpConfig(path) {
         setStatus('Checking wp-config.php...', 'gray');
         const formData = new FormData();
@@ -174,40 +143,18 @@ function startProgressPolling(fileName, progressFill, progressText) {
             .then(r => r.json())
             .then(data => {
                 if (data && data.DB_NAME !== undefined) {
-                    // fill fields
-                    const map = {
-                        'DB_HOST': 'db_host',
-                        'DB_USER': 'db_user',
-                        'DB_PASSWORD': 'db_pass',
-                        'DB_NAME': 'db_name'
-                    };
-                    Object.keys(map).forEach(k => {
-                        if (data[k]) {
-                            const el = document.querySelector('[name="' + map[k] + '"]');
-                            if (el) el.value = data[k];
-                        }
-                    });
+                    const map = {'DB_HOST': 'db_host','DB_USER': 'db_user','DB_PASSWORD': 'db_pass','DB_NAME': 'db_name'};
+                    Object.keys(map).forEach(k => { if (data[k]) { const el = document.querySelector('[name="' + map[k] + '"]'); if (el) el.value = data[k]; } });
                     setStatus('DB settings loaded from wp-config.php', 'green');
                 } else if (data && data.error) {
                     setStatus('wp-config.php: ' + data.error, 'red');
                 } else {
                     setStatus('Unexpected response from server', 'red');
                 }
-            })
-            .catch(err => {
-                setStatus('Error fetching wp-config.php: ' + err.message, 'red');
-            });
+            }).catch(err => setStatus('Error: ' + err.message, 'red'));
     }
-
-    input.addEventListener('input', function(){
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            const val = input.value.trim();
-            if (!val) { setStatus('Provide site path to auto-fill DB settings'); return; }
-            if (val[0] !== '/') { setStatus('Please enter an absolute path starting with /', 'red'); return; }
-            fetchWpConfig(val);
-        }, 600);
-    });
+    if (!input) return;
+    input.addEventListener('input', function(){ clearTimeout(timer); timer = setTimeout(()=>{ const val = input.value.trim(); if (!val) { setStatus('Provide site path to auto-fill DB settings'); return; } if (val[0] !== '/') { setStatus('Please enter an absolute path starting with /', 'red'); return; } fetchWpConfig(val); }, 600); });
 })();
 </script>
 </body>
