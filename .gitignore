@@ -2,4 +2,4 @@
 vendor/
 .idea/
 /.vscode/
-/.env.local
+/.env.local.github/deploy_keys/
