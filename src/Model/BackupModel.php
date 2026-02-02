@@ -6,10 +6,8 @@ use phpseclib3\Net\SFTP;
 
 class BackupModel
 {
-    /** @var string */
-    protected $tmpDir;
-    /** @var string|null */
-    private $progressFile = null;
+    protected string $tmpDir;
+    private ?string $progressFile = null;
 
     public function __construct()
     {
@@ -138,19 +136,48 @@ class BackupModel
     {
         $hostArg = escapeshellarg($host);
         $userArg = escapeshellarg($user);
-        $passArg = escapeshellarg($pass);
         $nameArg = escapeshellarg($name);
         $port = (int)$port;
-        $outfileEsc = escapeshellarg($outfile);
 
-        $cmd = "mysqldump --host={$hostArg} --port={$port} --user={$userArg} --password={$passArg} --single-transaction --quick --routines --triggers {$nameArg} > {$outfileEsc} 2>&1";
+        // Build mysqldump command without password on the command line.
+        // We'll capture stdout and write it to the outfile to avoid exposing credentials.
+        $cmd = "mysqldump --host={$hostArg} --port={$port} --user={$userArg} --single-transaction --quick --routines --triggers {$nameArg}";
 
-        exec($cmd, $out, $rc);
-        $outText = trim(implode("\n", $out));
-        if ($rc === 0 && file_exists($outfile)) {
+        $descriptors = [
+            1 => ['pipe', 'w'], // stdout
+            2 => ['pipe', 'w'], // stderr
+        ];
+
+        $process = @proc_open($cmd, $descriptors, $pipes, null, ['MYSQL_PWD' => $pass]);
+        if (!is_resource($process)) {
+            $msg = 'Failed to start mysqldump process';
+            error_log('dumpDatabase: ' . $msg . ' -- cmd: ' . $cmd);
+            return ['ok' => false, 'message' => $msg];
+        }
+
+        // Read stdout and write to outfile
+        $stdout = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+
+        $rc = proc_close($process);
+
+        // Write stdout to file if any
+        if ($stdout !== false) {
+            $written = @file_put_contents($outfile, $stdout);
+        } else {
+            $written = false;
+        }
+
+        $outText = trim(($stderr !== false ? $stderr : '') . "\n" . ($stdout !== false ? $stdout : ''));
+
+        if ($rc === 0 && $written !== false && file_exists($outfile)) {
             $msg = $outText ?: 'Dump created';
             return ['ok' => true, 'message' => $msg];
         }
+
         $msg = $outText ?: 'mysqldump failed with exit code ' . intval($rc);
         error_log('dumpDatabase: ' . $msg . ' -- cmd: ' . $cmd);
         return ['ok' => false, 'message' => $msg];
