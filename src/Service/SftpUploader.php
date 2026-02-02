@@ -2,9 +2,10 @@
 declare(strict_types=1);
 namespace BackupApp\Service;
 
+use BackupApp\Contract\UploaderInterface;
 use phpseclib3\Net\SFTP;
 
-class SftpUploader
+class SftpUploader implements UploaderInterface
 {
     /**
      * Upload a local file to remote SFTP/SSH. Returns structured array.

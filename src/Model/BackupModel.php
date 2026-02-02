@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace BackupApp\Model;
 
 use BackupApp\Service\DatabaseDumper;
+use BackupApp\Contract\UploaderInterface;
 use BackupApp\Service\SftpUploader;
 
 class BackupModel
@@ -10,13 +11,13 @@ class BackupModel
     protected string $tmpDir;
     private ?string $progressFile = null;
     private DatabaseDumper $dumper;
-    private SftpUploader $uploader;
+    private UploaderInterface $uploader;
 
-    public function __construct()
+    public function __construct(?DatabaseDumper $dumper = null, ?UploaderInterface $uploader = null)
     {
         $this->tmpDir = sys_get_temp_dir();
-        $this->dumper = new DatabaseDumper();
-        $this->uploader = new SftpUploader();
+        $this->dumper = $dumper ?? new DatabaseDumper();
+        $this->uploader = $uploader ?? new SftpUploader();
     }
 
     private function setProgress(int $percent, string $message = '', string $step = ''): void
