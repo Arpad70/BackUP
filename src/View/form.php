@@ -8,16 +8,16 @@
     <style>
         body { 
             padding: 2rem; 
-            background: linear-gradient(135deg, #e8f1f8 0%, #f5f8fc 50%, #f9fafb 100%);
+            background: linear-gradient(135deg, #d1d5db 0%, #e5e7eb 50%, #f3f4f6 100%);
             min-height: 100vh;
         }
-        .card { max-width: 1100px; margin: 0 auto; border: none; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+        .card { max-width: 1100px; margin: 0 auto; border: none; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
         .card-body { background: #ffffff; }
         .progress-fill { transition: width .3s; }
         
         /* Card sections */
         .card-section {
-            border-left: 4px solid;
+            border-left: 5px solid;
             padding: 1.5rem;
             margin-bottom: 1.5rem;
             background-color: #fafbfc;
@@ -25,25 +25,25 @@
         }
         .card-section h5 {
             margin-bottom: 1rem;
-            font-weight: 600;
-            color: #2c3e50;
+            font-weight: 700;
+            color: #1f2937;
         }
         
         /* Color themes - more vibrant */
-        .section-environment { border-left-color: #16a34a; background-color: #ecfdf5; }
-        .section-environment h5 { color: #16a34a; }
+        .section-environment { border-left-color: #059669; background-color: #d1fae5; }
+        .section-environment h5 { color: #047857; }
         
-        .section-paths { border-left-color: #0284c7; background-color: #f0f9ff; }
-        .section-paths h5 { color: #0284c7; }
+        .section-paths { border-left-color: #0369a1; background-color: #cffafe; }
+        .section-paths h5 { color: #0c4a6e; }
         
-        .section-source-db { border-left-color: #ea580c; background-color: #fff7ed; }
-        .section-source-db h5 { color: #ea580c; }
+        .section-source-db { border-left-color: #ca8a04; background-color: #fef3c7; }
+        .section-source-db h5 { color: #92400e; }
         
-        .section-target-db { border-left-color: #ea580c; background-color: #fff7ed; }
-        .section-target-db h5 { color: #ea580c; }
+        .section-target-db { border-left-color: #ca8a04; background-color: #fef3c7; }
+        .section-target-db h5 { color: #92400e; }
         
-        .section-sftp { border-left-color: #dc2626; background-color: #fef2f2; }
-        .section-sftp h5 { color: #dc2626; }
+        .section-sftp { border-left-color: #dc2626; background-color: #fee2e2; }
+        .section-sftp h5 { color: #7f1d1d; }
         
         .section-actions { text-align: center; padding-top: 1rem; }
         .section-actions .btn { padding: 0.75rem 3rem; font-size: 1.1rem; }
