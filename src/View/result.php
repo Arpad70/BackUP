@@ -25,6 +25,10 @@ if (!isset($appLog)) {
         }
         .card { max-width: 1100px; margin: 0 auto; border: none; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
         
+        /* Card sections - color themes only */
+        .section-environment { border-left: 5px solid #16a34a; background-color: #a7f3d0; }
+        .section-environment h5 { color: #15803d; }
+        
         .step-item {
             border-left: 4px solid #0369a1;
             padding-left: 1rem;
@@ -85,47 +89,86 @@ if (!isset($appLog)) {
     <?php endif; ?>
     
     <?php if (!empty($env)): ?>
-      <div class="p-3 rounded mb-4" style="border-left: 4px solid #0369a1; background-color: #cffafe;">
-        <h2 class="h5 mb-3" style="color: #0c4a6e;">🔍 <?= htmlspecialchars($translator->translate('environment_diagnostics')) ?></h2>
-        <div class="row g-2">
+      <div class="p-3 rounded mb-3 section-environment">
+        <h5 class="mb-3"><?= htmlspecialchars($translator->translate('environment_diagnostics')) ?></h5>
+        <div class="row g-3">
+          <!-- mysqldump -->
           <div class="col-md-6">
-            <div class="small">
-              <span class="fw-bold">mysqldump:</span>
-              <span class="<?= $env['mysqldump'] ? 'text-success' : 'text-danger' ?>">
-                <?= $env['mysqldump'] ? '✅ ' . htmlspecialchars($translator->translate('found')) : '❌ ' . htmlspecialchars($translator->translate('missing')) ?>
+            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
+              <span style="font-size: 1.5rem; min-width: 2rem;">
+                <?= $env['mysqldump'] ? '✅' : '❌' ?>
               </span>
+              <div style="flex: 1;">
+                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_mysqldump_desc')) ?>"><?= htmlspecialchars($translator->translate('env_mysqldump')) ?></strong>
+                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_required')) ?></div>
+                <span class="badge <?= $env['mysqldump'] ? 'bg-success' : 'bg-danger' ?> mt-2">
+                  <?= htmlspecialchars($translator->translate($env['mysqldump'] ? 'ok' : 'missing')) ?>
+                </span>
+              </div>
             </div>
           </div>
+          
+          <!-- zip ext -->
           <div class="col-md-6">
-            <div class="small">
-              <span class="fw-bold">PHP Zip:</span>
-              <span class="<?= $env['zip_ext'] ? 'text-success' : 'text-danger' ?>">
-                <?= $env['zip_ext'] ? '✅ ' . htmlspecialchars($translator->translate('ok')) : '❌ ' . htmlspecialchars($translator->translate('missing')) ?>
+            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
+              <span style="font-size: 1.5rem; min-width: 2rem;">
+                <?= $env['zip_ext'] ? '✅' : '❌' ?>
               </span>
+              <div style="flex: 1;">
+                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_zip_desc')) ?>"><?= htmlspecialchars($translator->translate('env_zip')) ?></strong>
+                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_required')) ?></div>
+                <span class="badge <?= $env['zip_ext'] ? 'bg-success' : 'bg-danger' ?> mt-2">
+                  <?= htmlspecialchars($translator->translate($env['zip_ext'] ? 'ok' : 'missing')) ?>
+                </span>
+              </div>
             </div>
           </div>
+          
+          <!-- phpseclib -->
           <div class="col-md-6">
-            <div class="small">
-              <span class="fw-bold">phpseclib:</span>
-              <span class="<?= $env['phpseclib'] ? 'text-success' : 'text-danger' ?>">
-                <?= $env['phpseclib'] ? '✅ ' . htmlspecialchars($translator->translate('available')) : '❌ ' . htmlspecialchars($translator->translate('not_available')) ?>
+            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
+              <span style="font-size: 1.5rem; min-width: 2rem;">
+                <?= $env['phpseclib'] ? '✅' : '⚠️' ?>
               </span>
+              <div style="flex: 1;">
+                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_phpseclib_desc')) ?>"><?= htmlspecialchars($translator->translate('env_phpseclib')) ?></strong>
+                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_recommended')) ?></div>
+                <span class="badge <?= $env['phpseclib'] ? 'bg-success' : 'bg-warning' ?> mt-2">
+                  <?= htmlspecialchars($translator->translate($env['phpseclib'] ? 'available' : 'not_available')) ?>
+                </span>
+              </div>
             </div>
           </div>
+          
+          <!-- ssh2 ext -->
           <div class="col-md-6">
-            <div class="small">
-              <span class="fw-bold">ssh2 ext:</span>
-              <span class="<?= $env['ssh2_ext'] ? 'text-success' : 'text-warning' ?>">
-                <?= $env['ssh2_ext'] ? '✅ ' . htmlspecialchars($translator->translate('available')) : '⚠️ ' . htmlspecialchars($translator->translate('not_available')) ?>
+            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
+              <span style="font-size: 1.5rem; min-width: 2rem;">
+                <?= $env['ssh2_ext'] ? '✅' : '⚠️' ?>
               </span>
+              <div style="flex: 1;">
+                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_ssh2_desc')) ?>"><?= htmlspecialchars($translator->translate('env_ssh2')) ?></strong>
+                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_recommended')) ?></div>
+                <span class="badge <?= $env['ssh2_ext'] ? 'bg-success' : 'bg-warning' ?> mt-2">
+                  <?= htmlspecialchars($translator->translate($env['ssh2_ext'] ? 'available' : 'not_available')) ?>
+                </span>
+              </div>
             </div>
           </div>
+          
+          <!-- tmp writable -->
           <div class="col-md-6">
-            <div class="small">
-              <span class="fw-bold">tmp writable:</span>
-              <span class="<?= $env['tmp_writable'] ? 'text-success' : 'text-danger' ?>">
-                <?= $env['tmp_writable'] ? '✅ ' . htmlspecialchars($translator->translate('yes')) : '❌ ' . htmlspecialchars($translator->translate('no')) ?>
+            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
+              <span style="font-size: 1.5rem; min-width: 2rem;">
+                <?= $env['tmp_writable'] ? '✅' : '❌' ?>
               </span>
+              <div style="flex: 1;">
+                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_tmp_writable_desc')) ?>"><?= htmlspecialchars($translator->translate('env_tmp_writable')) ?></strong>
+                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_required')) ?></div>
+                <span class="badge <?= $env['tmp_writable'] ? 'bg-success' : 'bg-danger' ?> mt-2">
+                  <?= htmlspecialchars($translator->translate($env['tmp_writable'] ? 'yes' : 'no')) ?>
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -185,12 +228,42 @@ if (!isset($appLog)) {
       </div>
     <?php endif; ?>
 
-    <div class="mb-4">
-      <a href="./" class="btn btn-primary">← <?= htmlspecialchars($translator->translate('back')) ?></a>
+    <a href="./" class="btn btn-primary">← <?= htmlspecialchars($translator->translate('back')) ?></a>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Initialize Bootstrap tooltips for all elements with data-tooltip attribute
+document.addEventListener('DOMContentLoaded', function() {
+    // Tooltips on hover
+    document.querySelectorAll('[data-tooltip]').forEach(function(el) {
+        el.addEventListener('mouseenter', function() {
+            const tooltipText = this.getAttribute('data-tooltip');
+            if (tooltipText) {
+                // Create tooltip
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip-box';
+                tooltip.textContent = tooltipText;
+                tooltip.style.cssText = 'position: fixed; background: #333; color: #fff; padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 9999; max-width: 300px; word-wrap: break-word; box-shadow: 0 2px 8px rgba(0,0,0,0.15);';
+                
+                const rect = this.getBoundingClientRect();
+                tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+                tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
+                
+                document.body.appendChild(tooltip);
+                
+                const removeTooltip = () => {
+                    if (tooltip.parentNode) tooltip.parentNode.removeChild(tooltip);
+                };
+                
+                el.addEventListener('mouseleave', removeTooltip, { once: true });
+                el.addEventListener('click', removeTooltip, { once: true });
+            }
+        });
+    });
+});
+</script>
 </body>
 </html>
