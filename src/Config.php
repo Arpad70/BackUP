@@ -1,12 +1,15 @@
 <?php
+declare(strict_types=1);
 namespace BackupApp;
 
 class Config
 {
     /**
-     * Load database credentials from wp-config.php
+        * Load database credentials from wp-config.php
+        *
+        * @return array<string,string>
      */
-    public static function loadWordPressConfig()
+    public static function loadWordPressConfig(): array
     {
         $wpConfig = dirname(__DIR__) . '/../wp-config.php';
         
@@ -20,8 +23,8 @@ class Config
         }
 
         // Read wp-config.php and extract DB constants
-        $content = file_get_contents($wpConfig);
-        
+        $content = (string) @file_get_contents($wpConfig);
+
         return [
             'db_name' => self::extractConstant($content, 'DB_NAME'),
             'db_user' => self::extractConstant($content, 'DB_USER'),
@@ -33,7 +36,7 @@ class Config
     /**
      * Extract constant value from PHP code using regex
      */
-    private static function extractConstant($content, $constant)
+    private static function extractConstant(string $content, string $constant): string
     {
         $pattern = "/define\s*\(\s*['\"]" . preg_quote($constant) . "['\"],\s*['\"]?([^'\"]*)['\"]?\s*\)/";
         

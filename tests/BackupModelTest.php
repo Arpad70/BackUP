@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class BackupModelTest extends TestCase
 {
+    /** @var BackupModel */
     protected $model;
 
     protected function setUp(): void
@@ -13,7 +14,7 @@ class BackupModelTest extends TestCase
         $this->model = new BackupModel();
     }
 
-    public function testEnvironmentChecksReturnsKeys()
+    public function testEnvironmentChecksReturnsKeys(): void
     {
         $checks = $this->model->environmentChecks();
         $this->assertIsArray($checks);
@@ -24,7 +25,7 @@ class BackupModelTest extends TestCase
         $this->assertArrayHasKey('tmp_writable', $checks);
     }
 
-    public function testZipDirectoryCreatesZip()
+    public function testZipDirectoryCreatesZip(): void
     {
         $tmp = sys_get_temp_dir() . '/backup_test_' . uniqid();
         mkdir($tmp);
@@ -47,7 +48,7 @@ class BackupModelTest extends TestCase
         unlink($zip);
     }
 
-    public function testDumpDatabaseFailsWithInvalidCredentials()
+    public function testDumpDatabaseFailsWithInvalidCredentials(): void
     {
         // Expecting false because credentials/DB unlikely to exist on CI/dev
         $out = $this->model->dumpDatabase('127.0.0.1', 'no_user', 'no_pass', 'no_db', 3306, sys_get_temp_dir() . '/dump_test.sql');
@@ -56,7 +57,7 @@ class BackupModelTest extends TestCase
         $this->assertFalse($out['ok']);
     }
 
-    public function testSftpUploadReturnsFalseForMissingLocalFile()
+    public function testSftpUploadReturnsFalseForMissingLocalFile(): void
     {
         $ret = $this->model->sftpUpload('/path/does/not/exist.file', '/remote/tmp', 'example.invalid', 22, 'u', 'p');
         $this->assertIsArray($ret);

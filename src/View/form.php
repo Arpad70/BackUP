@@ -21,7 +21,7 @@
 <body>
 <h1>Backup — DB dump, site zip and SFTP</h1>
 
-<?php if (isset($_POST) && !empty($_POST)): ?>
+<?php if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !empty($_POST)): ?>
     <div class="error">
         Form was submitted but you're viewing the form again. Please check the Steps below or server logs.
     </div>

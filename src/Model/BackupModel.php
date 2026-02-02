@@ -1,19 +1,22 @@
 <?php
+declare(strict_types=1);
 namespace BackupApp\Model;
 
 use phpseclib3\Net\SFTP;
 
 class BackupModel
 {
+    /** @var string */
     protected $tmpDir;
-    private $progressFile;
+    /** @var string|null */
+    private $progressFile = null;
 
     public function __construct()
     {
         $this->tmpDir = sys_get_temp_dir();
     }
 
-    private function setProgress($percent, $message = '', $step = '')
+    private function setProgress(int $percent, string $message = '', string $step = ''): void
     {
         if (!$this->progressFile) return;
         $data = [
@@ -25,12 +28,16 @@ class BackupModel
         @file_put_contents($this->progressFile, json_encode($data));
     }
 
-    public function getProgressFile()
+    public function getProgressFile(): ?string
     {
         return $this->progressFile;
     }
 
-    public function runBackup(array $data)
+    /**
+     * @param array<string,mixed> $data
+     * @return array<string,mixed>
+     */
+    public function runBackup(array $data): array
     {
         $response = ['steps' => [], 'errors' => []];
         $this->progressFile = sys_get_temp_dir() . '/backup_progress_' . time() . '.json';
@@ -55,8 +62,9 @@ class BackupModel
             $dbFile
         );
 
-        $dbOk = is_array($dbResult) ? ($dbResult['ok'] ?? false) : (bool)$dbResult;
-        $dbMsg = is_array($dbResult) ? ($dbResult['message'] ?? '') : '';
+        // dumpDatabase() returns an array with keys 'ok' and 'message'
+        $dbOk = $dbResult['ok'] ?? false;
+        $dbMsg = $dbResult['message'] ?? '';
 
         $response['steps'][] = ['db_dump' => $dbFile, 'ok' => $dbOk, 'message' => $dbMsg];
         if (! $dbOk) {
@@ -100,8 +108,8 @@ class BackupModel
         $response['steps'][] = ['upload_db' => $uplDB];
         $response['steps'][] = ['upload_site' => $uplZip];
 
-        $dbOk = is_array($uplDB) ? ($uplDB['ok'] ?? false) : (bool)$uplDB;
-        $zipOk = is_array($uplZip) ? ($uplZip['ok'] ?? false) : (bool)$uplZip;
+        $dbOk = $uplDB['ok'] ?? false;
+        $zipOk = $uplZip['ok'] ?? false;
 
         if (! $dbOk || ! $zipOk) {
             $msg = 'SFTP upload failed (see step status)';
@@ -121,7 +129,12 @@ class BackupModel
         return $response;
     }
 
-    public function dumpDatabase($host, $user, $pass, $name, $port, $outfile)
+    /**
+     * Execute mysqldump and return structured result
+     *
+     * @return array<string,mixed>
+     */
+    public function dumpDatabase(string $host, string $user, string $pass, string $name, int $port, string $outfile): array
     {
         $hostArg = escapeshellarg($host);
         $userArg = escapeshellarg($user);
@@ -143,7 +156,7 @@ class BackupModel
         return ['ok' => false, 'message' => $msg];
     }
 
-    public function zipDirectory($source, $destination)
+    public function zipDirectory(string $source, string $destination): bool
     {
         if (!extension_loaded('zip')) {
             return false;
@@ -154,24 +167,35 @@ class BackupModel
             return false;
         }
 
-        $source = realpath($source);
-        if (is_dir($source)) {
-            $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($source), \RecursiveIteratorIterator::LEAVES_ONLY);
+        $sourceReal = realpath($source);
+        if ($sourceReal === false) {
+            $zip->close();
+            return false;
+        }
+
+        if (is_dir($sourceReal)) {
+            $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($sourceReal), \RecursiveIteratorIterator::LEAVES_ONLY);
             foreach ($files as $name => $file) {
                 if (! $file->isFile()) continue;
                 $filePath = $file->getRealPath();
-                $relativePath = substr($filePath, strlen($source) + 1);
+                if ($filePath === false) continue;
+                $relativePath = substr($filePath, strlen($sourceReal) + 1);
                 $zip->addFile($filePath, $relativePath);
             }
         } else {
-            $zip->addFile($source, basename($source));
+            $zip->addFile($sourceReal, basename($sourceReal));
         }
 
         $zip->close();
         return file_exists($destination);
     }
 
-    public function sftpUpload($local, $remote, $host, $port, $user, $pass)
+    /**
+     * Upload a local file to remote SFTP/SSH
+     *
+     * @return array<string,mixed>
+     */
+    public function sftpUpload(string $local, string $remote, string $host, int $port, string $user, string $pass): array
     {
         if (!file_exists($local)) {
             $msg = 'Local file not found: ' . $local;
@@ -253,7 +277,10 @@ class BackupModel
         return ['ok' => false, 'message' => $msg];
     }
 
-    public function environmentChecks()
+    /**
+     * @return array<string,bool>
+     */
+    public function environmentChecks(): array
     {
         $checks = [];
 

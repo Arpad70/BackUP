@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 namespace BackupApp\Controller;
 
 use BackupApp\Model\BackupModel;
@@ -6,7 +7,7 @@ use BackupApp\Config;
 
 class BackupController
 {
-    public function handle()
+    public function handle(): void
     {
         // ensure application logs go to BackUP/logs/backup_app.log
         $logDir = dirname(__DIR__, 2) . '/logs';

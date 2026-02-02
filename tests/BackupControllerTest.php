@@ -7,20 +7,20 @@ use PHPUnit\Framework\TestCase;
 
 class BackupControllerTest extends TestCase
 {
-    public function testHandleRendersFormOnGet()
+    public function testHandleRendersFormOnGet(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         // Capture output
         ob_start();
         $c = new BackupController();
         $c->handle();
-        $out = ob_get_clean();
+        $out = (string) ob_get_clean();
 
         $this->assertStringContainsString('<form', $out);
         $this->assertStringContainsString('Host', $out);
     }
 
-    public function testHandleProcessesPostUsesModel()
+    public function testHandleProcessesPostUsesModel(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST = [
@@ -35,7 +35,7 @@ class BackupControllerTest extends TestCase
         ob_start();
         $c = new BackupController();
         $c->handle();
-        $out = ob_get_clean();
+        $out = (string) ob_get_clean();
 
         // Expect result view to contain steps/errors section
         $this->assertStringContainsString('Steps', $out);

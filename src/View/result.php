@@ -1,3 +1,15 @@
+<?php
+// Ensure expected variables exist to avoid undefined warnings in views/tests
+if (!isset($result) || !is_array($result)) {
+    $result = ['steps' => [], 'errors' => []];
+}
+if (!isset($env) || !is_array($env)) {
+    $env = [];
+}
+if (!isset($appLog)) {
+    $appLog = '';
+}
+?>
 <!doctype html>
 <html>
 <head><meta charset="utf-8"><title>Backup result</title></head>
@@ -8,7 +20,7 @@
         <ul><?php foreach($result['errors'] as $e) echo '<li>'.htmlspecialchars($e).'</li>'; ?></ul>
     </div>
 <?php endif; ?>
-<?php if (isset($env) && is_array($env)): ?>
+<?php if (!empty($env)): ?>
     <h2>Environment diagnostics</h2>
     <ul>
         <li>mysqldump: <?php echo $env['mysqldump'] ? 'found' : 'missing'; ?></li>
