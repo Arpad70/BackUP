@@ -84,7 +84,7 @@
       <div class="row g-3">
         <div class="col-md-6">
           <div class="p-3 rounded h-100 section-source-db">
-            <h5 class="mb-3"><?= htmlspecialchars($translator->translate('database') ?? 'Zdrojová databáze') ?></h5>
+            <h5><?= htmlspecialchars($translator->translate('database') ?? 'Zdrojová databáze') ?></h5>
             <div class="row g-2">
               <div class="col-md-6">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
@@ -112,7 +112,7 @@
 
         <div class="col-md-6">
           <div class="p-3 rounded h-100 section-target-db">
-            <h5 class="mb-3"><?= htmlspecialchars($translator->translate('target_site_db_heading')) ?></h5>
+            <h5><?= htmlspecialchars($translator->translate('target_site_db_heading')) ?></h5>
             <div class="row g-2">
               <div class="col-md-6">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('db_host_placeholder')) ?></label>
@@ -144,7 +144,7 @@
       <div class="row g-3 sftp-row">
         <div class="col-12">
           <div class="p-3 rounded section-sftp">
-            <h5 class="mb-3"><?= htmlspecialchars($translator->translate('sftp_section')) ?></h5>
+            <h5><?= htmlspecialchars($translator->translate('sftp_section')) ?></h5>
             <div class="row g-2">
               <div class="col-md-4">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
