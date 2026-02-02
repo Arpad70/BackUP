@@ -263,10 +263,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Preserve current URL when changing language
+// Preserve result page when changing language
 function changeLang(lang) {
     const url = new URL(window.location);
     url.searchParams.set('lang', lang);
+    // Keep current page (result.php)
     window.location.href = url.toString();
 }
 </script>

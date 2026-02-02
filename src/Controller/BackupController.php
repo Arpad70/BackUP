@@ -18,6 +18,11 @@ class BackupController
         ini_set('error_log', $logDir . '/backup_app.log');
 
         try {
+            // Start session to preserve result data when changing language
+            if (session_status() === PHP_SESSION_NONE) {
+                @session_start();
+            }
+
             $db_config = Config::loadWordPressConfig();
 
             // determine language and create translator early so we can use it during POST handling
@@ -105,12 +110,39 @@ class BackupController
                     $appLog = implode("\n", $tail);
                 }
 
+                // Store result in session to preserve when changing language
+                $_SESSION['backup_result'] = [
+                    'result' => $result,
+                    'env' => $env,
+                    'appLog' => $appLog
+                ];
+
                 // pass translator to result view (translator was already created earlier)
                 include __DIR__ . '/../View/result.php';
                 return;
             }
 
-            $env = $model->environmentChecks();
+            // Check if we have stored result (from language change on result page)
+            $result = null;
+            $env = null;
+            $appLog = '';
+            
+            if (!empty($_SESSION['backup_result'])) {
+                $stored = $_SESSION['backup_result'];
+                $result = $stored['result'] ?? null;
+                $env = $stored['env'] ?? null;
+                $appLog = $stored['appLog'] ?? '';
+                
+                // Only show stored result, don't keep it for next page load
+                if (!empty($_GET['lang'])) {
+                    // Language changed, keep result for this view
+                } else {
+                    // No language change, clear stored result
+                    unset($_SESSION['backup_result']);
+                }
+            }
+
+            $env = $env ?? $model->environmentChecks();
             include __DIR__ . '/../View/form.php';
         } catch (\Throwable $e) {
             header('HTTP/1.1 500 Internal Server Error');
