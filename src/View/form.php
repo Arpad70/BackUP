@@ -156,47 +156,51 @@
       </div>
 
       <!-- SFTP Section -->
-      <div class="card-section section-sftp">
-        <h5><?= htmlspecialchars($translator->translate('sftp_section')) ?></h5>
-        <div class="row g-2">
-          <div class="col-md-4">
-            <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
-            <input name="sftp_host" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_sftp_host')) ?>">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
-            <input name="sftp_port" class="form-control" value="22">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
-            <input name="sftp_user" class="form-control" placeholder="user">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label"><?= htmlspecialchars($translator->translate('remote_dir')) ?></label>
-            <input name="sftp_remote" class="form-control" placeholder="/backups" value="/backups">
-          </div>
-        </div>
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="card-section section-sftp">
+            <h5><?= htmlspecialchars($translator->translate('sftp_section')) ?></h5>
+            <div class="row g-2">
+              <div class="col-md-4">
+                <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
+                <input name="sftp_host" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_sftp_host')) ?>">
+              </div>
+              <div class="col-md-2">
+                <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
+                <input name="sftp_port" class="form-control" value="22">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
+                <input name="sftp_user" class="form-control" placeholder="user">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label"><?= htmlspecialchars($translator->translate('remote_dir')) ?></label>
+                <input name="sftp_remote" class="form-control" placeholder="/backups" value="/backups">
+              </div>
+            </div>
 
-        <div class="mt-3">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="sftp_auth" id="sftpAuthPass" value="password" checked>
-            <label class="form-check-label" for="sftpAuthPass"><?= htmlspecialchars($translator->translate('sftp_auth_password')) ?></label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="sftp_auth" id="sftpAuthKey" value="key">
-            <label class="form-check-label" for="sftpAuthKey"><?= htmlspecialchars($translator->translate('sftp_auth_key')) ?></label>
-          </div>
-        </div>
+            <div class="mt-3">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="sftp_auth" id="sftpAuthPass" value="password" checked>
+                <label class="form-check-label" for="sftpAuthPass"><?= htmlspecialchars($translator->translate('sftp_auth_password')) ?></label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="sftp_auth" id="sftpAuthKey" value="key">
+                <label class="form-check-label" for="sftpAuthKey"><?= htmlspecialchars($translator->translate('sftp_auth_key')) ?></label>
+              </div>
+            </div>
 
-        <div id="sftp-password-fields" class="mt-3">
-          <input name="sftp_pass" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('sftp_password_placeholder')) ?>">
-        </div>
+            <div id="sftp-password-fields" class="mt-3">
+              <input name="sftp_pass" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('sftp_password_placeholder')) ?>">
+            </div>
 
-        <div id="sftp-key-fields" class="mt-3" style="display:none;">
-          <textarea name="sftp_key" rows="6" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('sftp_auth_key')) ?>"></textarea>
-          <div class="mt-2"><input name="sftp_key_file" type="file" class="form-control" accept=".pem,.key,text/plain"></div>
-          <div class="mt-2"><input name="sftp_key_passphrase" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('key_passphrase_optional')) ?>"></div>
-          <div class="form-text mt-2"><?= htmlspecialchars($translator->translate('private_key_notice')) ?></div>
+            <div id="sftp-key-fields" class="mt-3" style="display:none;">
+              <textarea name="sftp_key" rows="6" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('sftp_auth_key')) ?>"></textarea>
+              <div class="mt-2"><input name="sftp_key_file" type="file" class="form-control" accept=".pem,.key,text/plain"></div>
+              <div class="mt-2"><input name="sftp_key_passphrase" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('key_passphrase_optional')) ?>"></div>
+              <div class="form-text mt-2"><?= htmlspecialchars($translator->translate('private_key_notice')) ?></div>
+            </div>
+          </div>
         </div>
       </div>
 
