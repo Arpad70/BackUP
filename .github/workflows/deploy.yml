@@ -16,10 +16,16 @@ jobs:
       - name: Install rsync
         run: sudo apt-get update && sudo apt-get install -y rsync
 
-      - name: Setup SSH key
-        uses: webfactory/ssh-agent@v0.8.1
-        with:
-          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+      - name: Setup SSH key (inline)
+        run: |
+          mkdir -p ~/.ssh
+          umask 077
+          echo "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          eval "$(ssh-agent -s)"
+          ssh-add ~/.ssh/id_ed25519
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
 
       - name: Ensure remote host known
         run: |
