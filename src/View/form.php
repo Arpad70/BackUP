@@ -20,6 +20,7 @@
         <form method="get" class="d-flex align-items-center">
           <select name="lang" onchange="this.form.submit()" class="form-select form-select-sm">
             <option value="cs" <?= ($translator->getLocale() === 'cs') ? 'selected' : '' ?>>cs</option>
+            <option value="sk" <?= ($translator->getLocale() === 'sk') ? 'selected' : '' ?>>sk</option>
             <option value="en" <?= ($translator->getLocale() === 'en') ? 'selected' : '' ?>>en</option>
           </select>
         </form>
