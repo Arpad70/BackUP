@@ -30,8 +30,8 @@
         }
         
         /* Color themes - more vibrant */
-        .section-environment { border-left-color: #059669; background-color: #d1fae5; }
-        .section-environment h5 { color: #047857; }
+        .section-environment { border-left-color: #16a34a; background-color: #a7f3d0; }
+        .section-environment h5 { color: #15803d; }
         
         .section-paths { border-left-color: #0369a1; background-color: #cffafe; }
         .section-paths h5 { color: #0c4a6e; }
