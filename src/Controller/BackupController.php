@@ -116,6 +116,20 @@ class BackupController
                     'env' => $env,
                     'appLog' => $appLog
                 ];
+                
+                // Also store backup data for migration page
+                $_SESSION['last_backup_data'] = [
+                    'source_path' => $data['source_path'] ?? '',
+                    'target_path' => $data['target_path'] ?? '',
+                    'source_db' => $data['source_db'] ?? '',
+                    'source_db_host' => $data['source_db_host'] ?? '',
+                    'source_db_port' => $data['source_db_port'] ?? '',
+                    'source_db_user' => $data['source_db_user'] ?? '',
+                    'target_db' => $data['target_db'] ?? '',
+                    'target_db_host' => $data['target_db_host'] ?? '',
+                    'target_db_port' => $data['target_db_port'] ?? '',
+                    'target_db_user' => $data['target_db_user'] ?? '',
+                ];
 
                 // pass translator to result view (translator was already created earlier)
                 include __DIR__ . '/../View/result.php';
@@ -139,6 +153,13 @@ class BackupController
             if ($showResult && !empty($_GET['lang'])) {
                 // Language changed on result page - show result with new language
                 include __DIR__ . '/../View/result.php';
+                return;
+            }
+
+            // Check if going to migration page
+            if (!empty($_GET['page']) && $_GET['page'] === 'migration') {
+                $backupData = $_SESSION['backup_result']['result']['backup_data'] ?? $_SESSION['last_backup_data'] ?? [];
+                include __DIR__ . '/../View/migration.php';
                 return;
             }
 

@@ -127,5 +127,24 @@ return [
     'env_status_ok' => 'OK',
     'env_status_missing' => 'Chybí',
     'env_status_available' => 'Dostupné',
-    'env_status_not_available' => 'Nedostupné'
+    'env_status_not_available' => 'Nedostupné',
+    'next' => 'Další',
+    'migration_title' => 'Migrace webu',
+    'migration_step_clear' => 'Vymazání cílového adresáře',
+    'migration_step_extract' => 'Rozbalení souborů',
+    'migration_step_reset_db' => 'Reset databáze',
+    'migration_step_import_db' => 'Import databáze',
+    'migration_choose_method' => 'Způsob migrace',
+    'migration_method_local' => 'Lokální (přímý přístup)',
+    'migration_method_sftp' => 'SFTP (vzdálený přístup)',
+    'migration_requires_target_path' => 'Cílová cesta musí být vyplněna pro migraci',
+    'migration_requires_target_db' => 'Cílová databáze musí být vyplněna pokud je vyplněna cílová cesta',
+    'migration_clear_button' => 'Vymazat obsah',
+    'migration_extract_button' => 'Rozbalit soubory',
+    'migration_import_db_button' => 'Obnovit databázi',
+    'migration_preserve_backups' => 'Obsah adresáře bude vymazán s výjimkou podsložky "backups"',
+    'selected' => 'vybráno',
+    'complete' => 'Dokončit',
+    'error_source_required' => 'Zdrojová cesta a zdrojová databáze musí být vyplněny'
 ];
+

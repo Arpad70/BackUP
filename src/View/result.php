@@ -226,7 +226,12 @@ if (!isset($appLog)) {
       </div>
     <?php endif; ?>
 
-    <a href="./" class="btn btn-primary">← <?= htmlspecialchars($translator->translate('back')) ?></a>
+    <div class="mb-4 d-flex justify-content-between gap-2">
+      <a href="./" class="btn btn-primary">← <?= htmlspecialchars($translator->translate('back')) ?></a>
+      <button class="btn btn-success" onclick="goToMigration()">
+        <?= htmlspecialchars($translator->translate('next')) ?> →
+      </button>
+    </div>
     </div>
   </div>
 </div>
@@ -269,6 +274,17 @@ function changeLang(lang) {
     url.searchParams.set('lang', lang);
     // Keep current page (result.php)
     window.location.href = url.toString();
+}
+
+// Go to migration page and preserve session data
+function goToMigration() {
+    // Store flag that we're going to migration page
+    fetch('./index.php?action=prepare_migration', {
+        method: 'POST',
+        credentials: 'include'
+    }).then(() => {
+        window.location.href = './index.php?page=migration';
+    });
 }
 </script>
 </body>
