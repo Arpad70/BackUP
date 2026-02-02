@@ -1,0 +1,29 @@
+# Root-level .htaccess: forward requests to /public while protecting sensitive files
+Options -Indexes
+
+# Protect root sensitive files
+<FilesMatch "^(\.env|composer\.json|composer\.lock|phpunit\.xml|README\.md)$">
+    Require all denied
+</FilesMatch>
+
+# Deny access to source paths if exposed
+RedirectMatch 403 ^/(src|vendor|tests)/
+
+# Prefer serving from /public
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # If request already for /public, do nothing
+    RewriteCond %{REQUEST_URI} !^/public/
+
+    # If the requested resource exists under public, rewrite to it
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -d
+    RewriteRule ^(.*)$ /public/$1 [L]
+
+    # Otherwise route everything to public/index.php
+    RewriteRule ^ /public/index.php [L,QSA]
+</IfModule>
+
+# Ensure directory index uses public
+DirectoryIndex /public/index.php

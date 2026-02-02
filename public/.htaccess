@@ -1,0 +1,36 @@
+# Disable directory listing
+Options -Indexes
+
+# Protect this file
+<Files ".htaccess">
+    Require all denied
+</Files>
+
+# Deny access to dotfiles and common sensitive files
+<FilesMatch "^(\..*|composer\.json|composer\.lock|phpunit\.xml|\.env)$">
+    Require all denied
+</FilesMatch>
+
+# Security headers (if mod_headers enabled)
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "DENY"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "no-referrer-when-downgrade"
+</IfModule>
+
+# Disable server info
+ServerSignature Off
+
+# Pretty URLs: route all requests to index.php
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    # Don't rewrite existing files or directories
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Rewrite everything else to index.php
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
