@@ -6,8 +6,12 @@
     <title><?= htmlspecialchars($translator->translate('title')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { padding: 2rem; background-color: #f8f9fa; }
-        .card { max-width: 1100px; margin: 0 auto; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        body { 
+            padding: 2rem; 
+            background: linear-gradient(135deg, #e8f1f8 0%, #f5f8fc 50%, #f9fafb 100%);
+            min-height: 100vh;
+        }
+        .card { max-width: 1100px; margin: 0 auto; border: none; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
         .card-body { background: #ffffff; }
         .progress-fill { transition: width .3s; }
         
@@ -25,21 +29,21 @@
             color: #2c3e50;
         }
         
-        /* Color themes */
-        .section-environment { border-left-color: #27ae60; background-color: #f0f8f4; }
-        .section-environment h5 { color: #27ae60; }
+        /* Color themes - more vibrant */
+        .section-environment { border-left-color: #16a34a; background-color: #ecfdf5; }
+        .section-environment h5 { color: #16a34a; }
         
-        .section-paths { border-left-color: #3498db; background-color: #f0f6fb; }
-        .section-paths h5 { color: #3498db; }
+        .section-paths { border-left-color: #0284c7; background-color: #f0f9ff; }
+        .section-paths h5 { color: #0284c7; }
         
-        .section-source-db { border-left-color: #f39c12; background-color: #fef9f0; }
-        .section-source-db h5 { color: #f39c12; }
+        .section-source-db { border-left-color: #ea580c; background-color: #fff7ed; }
+        .section-source-db h5 { color: #ea580c; }
         
-        .section-target-db { border-left-color: #f39c12; background-color: #fef9f0; }
-        .section-target-db h5 { color: #f39c12; }
+        .section-target-db { border-left-color: #ea580c; background-color: #fff7ed; }
+        .section-target-db h5 { color: #ea580c; }
         
-        .section-sftp { border-left-color: #e74c3c; background-color: #fdf6f6; }
-        .section-sftp h5 { color: #e74c3c; }
+        .section-sftp { border-left-color: #dc2626; background-color: #fef2f2; }
+        .section-sftp h5 { color: #dc2626; }
         
         .section-actions { text-align: center; padding-top: 1rem; }
         .section-actions .btn { padding: 0.75rem 3rem; font-size: 1.1rem; }
