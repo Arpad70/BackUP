@@ -40,13 +40,11 @@
     <div class="d-flex justify-content-between align-items-start mb-2">
       <h1 class="card-title mb-3"><?= htmlspecialchars($translator->translate('title')) ?></h1>
       <div>
-        <form method="get" class="d-flex align-items-center" onsubmit="changeLang(event)">
-          <select name="lang" class="form-select form-select-sm">
-            <option value="cs" <?= ($translator->getLocale() === 'cs') ? 'selected' : '' ?>>cs</option>
-            <option value="sk" <?= ($translator->getLocale() === 'sk') ? 'selected' : '' ?>>sk</option>
-            <option value="en" <?= ($translator->getLocale() === 'en') ? 'selected' : '' ?>>en</option>
-          </select>
-        </form>
+        <select name="lang" class="form-select form-select-sm" onchange="changeLang(this.value)">
+          <option value="cs" <?= ($translator->getLocale() === 'cs') ? 'selected' : '' ?>>cs</option>
+          <option value="sk" <?= ($translator->getLocale() === 'sk') ? 'selected' : '' ?>>sk</option>
+          <option value="en" <?= ($translator->getLocale() === 'en') ? 'selected' : '' ?>>en</option>
+        </select>
       </div>
     </div>
 
@@ -383,9 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Preserve current URL when changing language
-function changeLang(e) {
-    e.preventDefault();
-    const lang = document.querySelector('select[name="lang"]').value;
+function changeLang(lang) {
     const url = new URL(window.location);
     url.searchParams.set('lang', lang);
     window.location.href = url.toString();
