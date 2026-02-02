@@ -52,7 +52,8 @@ jobs:
           script: |
             set -e
             # ensure permissions
-            chown -R ${{ secrets.DEPLOY_USER }}:${{ secrets.DEPLOY_USER }} "${{ secrets.DEPLOY_PATH }}"
+            # some hosts don't have a same-named group; change to set owner only
+            chown -R "${{ secrets.DEPLOY_USER }}" "${{ secrets.DEPLOY_PATH }}"
             find "${{ secrets.DEPLOY_PATH }}" -type d -exec chmod 755 {} +
             find "${{ secrets.DEPLOY_PATH }}" -type f -exec chmod 644 {} +
             # optional: create simple index listing (if no web index exists)
