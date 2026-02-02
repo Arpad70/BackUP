@@ -51,26 +51,30 @@
           <div class="form-text">If these are provided, a dump of the target DB will be included in the final backup.</div>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-12">
           <h5 class="mt-3">Database</h5>
-          <label class="form-label">Host</label>
-          <input name="db_host" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_host'] ?? '127.0.0.1') ?>">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Port</label>
-          <input name="db_port" type="text" class="form-control" value="3306">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">User</label>
-          <input name="db_user" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_user'] ?? '') ?>">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Password</label>
-          <input name="db_pass" type="password" class="form-control" value="<?= htmlspecialchars($db_config['db_password'] ?? '') ?>">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Database name</label>
-          <input name="db_name" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_name'] ?? '') ?>">
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label">Host</label>
+              <input name="db_host" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_host'] ?? '127.0.0.1') ?>">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Port</label>
+              <input name="db_port" type="text" class="form-control" value="3306">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">User</label>
+              <input name="db_user" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_user'] ?? '') ?>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Password</label>
+              <input name="db_pass" type="password" class="form-control" value="<?= htmlspecialchars($db_config['db_password'] ?? '') ?>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Database name</label>
+              <input name="db_name" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_name'] ?? '') ?>">
+            </div>
+          </div>
         </div>
 
         <div class="col-12">
