@@ -12,7 +12,7 @@
             min-height: 100vh;
         }
         .card { max-width: 1100px; margin: 0 auto; border: none; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
-        .card-body { background: #ffffff; }
+        .card-body { background: #ffffff; padding: 2rem 2.5rem; }
         .progress-fill { transition: width .3s; }
         
         /* Card sections */
@@ -42,7 +42,7 @@
         .section-target-db { border-left-color: #ca8a04; background-color: #fef3c7; }
         .section-target-db h5 { color: #92400e; }
         
-        .section-sftp { border-left-color: #dc2626; background-color: #fee2e2; }
+        .section-sftp { border-left-color: #dc2626; background-color: #fee2e2; margin-top: 2rem; }
         .section-sftp h5 { color: #7f1d1d; }
         
         .section-actions { text-align: center; padding-top: 1rem; }
