@@ -30,6 +30,20 @@ class BackupController
             $translator = new \BackupApp\Service\Translator($lang, ['fallback' => 'cs', 'path' => dirname(__DIR__,2) . '/lang']);
             $model = new BackupModel(null, null, $translator);
 
+            // Handle AJAX migration steps
+            if (!empty($_POST) && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+                $this->handleMigrationStep($model, $translator);
+                return;
+            }
+
+            // Handle non-AJAX migration steps
+            if (!empty($_GET['action']) && $_GET['action'] === 'migration_step') {
+                $this->handleMigrationStep($model, $translator);
+                return;
+            }
+
+            $model = new BackupModel(null, null, $translator);
+
             $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
             if ($method === 'POST') {
                 $data = array_map('trim', $_POST);
@@ -177,4 +191,100 @@ class BackupController
             error_log('backup_app error: ' . $e->getMessage());
         }
     }
+
+    private function handleMigrationStep(BackupModel $model, \BackupApp\Service\Translator $translator): void
+    {
+        header('Content-Type: application/json');
+
+        $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+        $step = $input['step'] ?? null;
+        $backupData = $input['backupData'] ?? $_SESSION['last_backup_data'] ?? [];
+        $method = $input['method'] ?? 'local';
+
+        if (empty($step)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Missing step parameter']);
+            return;
+        }
+
+        $result = [];
+
+        try {
+            switch ($step) {
+                case 'clear':
+                    if (empty($backupData['target_path'])) {
+                        throw new \Exception('Target path is required');
+                    }
+                    $result = $model->clearTargetDirectory($backupData['target_path']);
+                    break;
+
+                case 'extract':
+                    if (empty($backupData['target_path'])) {
+                        throw new \Exception('Target path is required');
+                    }
+                    // Find the latest backup file
+                    $backupDir = dirname(__DIR__, 2) . '/backups';
+                    $files = @glob($backupDir . '/backup_*.zip') ?: [];
+                    if (empty($files)) {
+                        throw new \Exception('No backup file found');
+                    }
+                    $latestBackup = end($files);
+                    $result = $model->extractBackupArchive($latestBackup, $backupData['target_path']);
+                    break;
+
+                case 'reset_db':
+                    if (empty($backupData['target_path']) || empty($backupData['target_db'])) {
+                        throw new \Exception('Target path and database are required');
+                    }
+                    $result = $model->resetTargetDatabase(
+                        $backupData['target_path'],
+                        $backupData['target_db'],
+                        $backupData['target_db_host'] ?? 'localhost',
+                        $backupData['target_db_user'] ?? 'root',
+                        $backupData['target_db_password'] ?? ''
+                    );
+                    break;
+
+                case 'import_db':
+                    if (empty($backupData['target_path']) || empty($backupData['target_db'])) {
+                        throw new \Exception('Target path and database are required');
+                    }
+                    // Find the latest SQL dump
+                    $backupDir = dirname(__DIR__, 2) . '/backups';
+                    $files = @glob($backupDir . '/db_dump_*.sql') ?: [];
+                    if (empty($files)) {
+                        throw new \Exception('No database dump file found');
+                    }
+                    $latestDump = end($files);
+                    $result = $model->importTargetDatabase(
+                        $backupData['target_path'],
+                        $latestDump,
+                        $backupData['target_db'],
+                        $backupData['target_db_host'] ?? 'localhost',
+                        $backupData['target_db_user'] ?? 'root',
+                        $backupData['target_db_password'] ?? ''
+                    );
+                    break;
+
+                default:
+                    throw new \Exception('Unknown step: ' . $step);
+            }
+
+            echo json_encode([
+                'success' => ($result['ok'] ?? false),
+                'output' => $result['message'] ?? 'Step completed',
+                'result' => $result,
+                'error' => ($result['ok'] ?? false) ? null : ($result['message'] ?? 'Unknown error')
+            ]);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'output' => 'Error: ' . $e->getMessage()
+            ]);
+            error_log('migration_step error: ' . $e->getMessage());
+        }
+    }
 }
+

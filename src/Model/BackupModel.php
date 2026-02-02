@@ -408,4 +408,193 @@ class BackupModel
 
         return $checks;
     }
+
+    /**
+     * Clear target directory contents while preserving backups subdirectory
+     * @param string $targetPath Absolute path to target directory
+     * @return array<string,mixed> Result with ok, message, files_deleted
+     */
+    public function clearTargetDirectory(string $targetPath): array
+    {
+        if (!is_dir($targetPath)) {
+            return ['ok' => false, 'message' => 'Target directory does not exist: ' . $targetPath];
+        }
+
+        if (!is_writable($targetPath)) {
+            return ['ok' => false, 'message' => 'Target directory is not writable: ' . $targetPath];
+        }
+
+        $backupsDir = rtrim($targetPath, '/') . '/backups';
+        $deletedCount = 0;
+        $errors = [];
+
+        try {
+            $iterator = new \RecursiveDirectoryIterator($targetPath, \RecursiveDirectoryIterator::SKIP_DOTS);
+            $files = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::CHILD_FIRST);
+
+            foreach ($files as $fileinfo) {
+                $path = $fileinfo->getRealPath();
+                
+                // Skip backups directory
+                if (strpos($path, $backupsDir) === 0) {
+                    continue;
+                }
+
+                try {
+                    if ($fileinfo->isDir()) {
+                        @rmdir($path);
+                    } else {
+                        @unlink($path);
+                    }
+                    $deletedCount++;
+                } catch (\Throwable $e) {
+                    $errors[] = $path . ': ' . $e->getMessage();
+                }
+            }
+
+            // Try to clean up empty directories
+            $iterator = new \RecursiveDirectoryIterator($targetPath, \RecursiveDirectoryIterator::SKIP_DOTS);
+            $files = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::CHILD_FIRST);
+            foreach ($files as $fileinfo) {
+                $path = $fileinfo->getRealPath();
+                if (strpos($path, $backupsDir) !== 0 && $fileinfo->isDir()) {
+                    @rmdir($path);
+                }
+            }
+
+            return [
+                'ok' => true,
+                'message' => $deletedCount . ' files/dirs deleted',
+                'files_deleted' => $deletedCount,
+                'errors' => $errors
+            ];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => 'Error clearing directory: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Extract backup archive to target directory
+     * @param string $archivePath Path to backup zip file
+     * @param string $targetPath Target directory path
+     * @return array<string,mixed> Result with ok, message, files_extracted
+     */
+    public function extractBackupArchive(string $archivePath, string $targetPath): array
+    {
+        if (!file_exists($archivePath)) {
+            return ['ok' => false, 'message' => 'Archive file not found: ' . $archivePath];
+        }
+
+        if (!extension_loaded('zip')) {
+            return ['ok' => false, 'message' => 'ZIP extension not available'];
+        }
+
+        try {
+            $zip = new \ZipArchive();
+            if (!$zip->open($archivePath)) {
+                return ['ok' => false, 'message' => 'Failed to open archive: ' . $archivePath];
+            }
+
+            if (!$zip->extractTo($targetPath)) {
+                $zip->close();
+                return ['ok' => false, 'message' => 'Failed to extract archive to: ' . $targetPath];
+            }
+
+            $fileCount = $zip->numFiles;
+            $zip->close();
+
+            return [
+                'ok' => true,
+                'message' => $fileCount . ' files extracted',
+                'files_extracted' => $fileCount
+            ];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => 'Error extracting archive: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Reset target database using wp-cli
+     * @param string $targetPath Target WordPress directory
+     * @param string $targetDb Target database name
+     * @param string $targetDbHost Database host
+     * @param string $targetDbUser Database user
+     * @param string $targetDbPassword Database password
+     * @return array<string,mixed> Result with ok, message
+     */
+    public function resetTargetDatabase(string $targetPath, string $targetDb, string $targetDbHost, string $targetDbUser, string $targetDbPassword): array
+    {
+        if (!is_dir($targetPath)) {
+            return ['ok' => false, 'message' => 'Target directory not found: ' . $targetPath];
+        }
+
+        // Check if wp-cli is available
+        $wpCliOutput = shell_exec('which wp 2>&1') ?? '';
+        if (empty(trim($wpCliOutput))) {
+            return ['ok' => false, 'message' => 'wp-cli is not installed'];
+        }
+
+        try {
+            $escapedPath = escapeshellarg($targetPath);
+            $escapedDb = escapeshellarg($targetDb);
+            $escapedHost = escapeshellarg($targetDbHost);
+            $escapedUser = escapeshellarg($targetDbUser);
+            $escapedPass = escapeshellarg($targetDbPassword);
+
+            // Reset database using wp-cli
+            $cmd = "cd {$escapedPath} && wp db reset --yes --allow-root --dbname={$escapedDb} --dbhost={$escapedHost} --dbuser={$escapedUser} --dbpass={$escapedPass} 2>&1";
+            $output = shell_exec($cmd);
+
+            if ($output === null || strpos($output, 'error') !== false) {
+                return ['ok' => false, 'message' => 'Database reset failed: ' . $output];
+            }
+
+            return ['ok' => true, 'message' => 'Database successfully reset'];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => 'Error resetting database: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Import backup database using wp-cli
+     * @param string $targetPath Target WordPress directory
+     * @param string $dumpFile Path to SQL dump file
+     * @param string $targetDb Target database name
+     * @param string $targetDbHost Database host
+     * @param string $targetDbUser Database user
+     * @param string $targetDbPassword Database password
+     * @return array<string,mixed> Result with ok, message
+     */
+    public function importTargetDatabase(string $targetPath, string $dumpFile, string $targetDb, string $targetDbHost, string $targetDbUser, string $targetDbPassword): array
+    {
+        if (!file_exists($dumpFile)) {
+            return ['ok' => false, 'message' => 'Database dump file not found: ' . $dumpFile];
+        }
+
+        if (!is_dir($targetPath)) {
+            return ['ok' => false, 'message' => 'Target directory not found: ' . $targetPath];
+        }
+
+        try {
+            $escapedPath = escapeshellarg($targetPath);
+            $escapedDump = escapeshellarg($dumpFile);
+            $escapedDb = escapeshellarg($targetDb);
+            $escapedHost = escapeshellarg($targetDbHost);
+            $escapedUser = escapeshellarg($targetDbUser);
+            $escapedPass = escapeshellarg($targetDbPassword);
+
+            // Import database using wp-cli
+            $cmd = "cd {$escapedPath} && wp db import {$escapedDump} --allow-root --dbname={$escapedDb} --dbhost={$escapedHost} --dbuser={$escapedUser} --dbpass={$escapedPass} 2>&1";
+            $output = shell_exec($cmd);
+
+            if ($output === null || strpos($output, 'error') !== false) {
+                return ['ok' => false, 'message' => 'Database import failed: ' . $output];
+            }
+
+            return ['ok' => true, 'message' => 'Database successfully imported'];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => 'Error importing database: ' . $e->getMessage()];
+        }
+    }
 }
+

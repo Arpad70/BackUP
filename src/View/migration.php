@@ -137,7 +137,7 @@ if (!isset($translator)) {
     <!-- Migration Steps -->
     <div class="mt-4">
       <!-- Step 1: Clear Directory -->
-      <div class="migration-step p-3 rounded mb-3">
+      <div class="migration-step p-3 rounded mb-3" data-step="clear">
         <div class="d-flex align-items-center mb-2">
           <span class="step-number">1</span>
           <h5 class="mb-0">📁 <?= htmlspecialchars($translator->translate('migration_step_clear')) ?></h5>
@@ -151,7 +151,7 @@ if (!isset($translator)) {
       </div>
 
       <!-- Step 2: Extract Files -->
-      <div class="migration-step p-3 rounded mb-3">
+      <div class="migration-step p-3 rounded mb-3" data-step="extract">
         <div class="d-flex align-items-center mb-2">
           <span class="step-number">2</span>
           <h5 class="mb-0">📦 <?= htmlspecialchars($translator->translate('migration_step_extract')) ?></h5>
@@ -162,7 +162,7 @@ if (!isset($translator)) {
       </div>
 
       <!-- Step 3: Reset Database -->
-      <div class="migration-step p-3 rounded mb-3">
+      <div class="migration-step p-3 rounded mb-3" data-step="reset_db">
         <div class="d-flex align-items-center mb-2">
           <span class="step-number">3</span>
           <h5 class="mb-0">🔄 <?= htmlspecialchars($translator->translate('migration_step_reset_db')) ?></h5>
@@ -173,7 +173,7 @@ if (!isset($translator)) {
       </div>
 
       <!-- Step 4: Import Database -->
-      <div class="migration-step p-3 rounded mb-3">
+      <div class="migration-step p-3 rounded mb-3" data-step="import_db">
         <div class="d-flex align-items-center mb-2">
           <span class="step-number">4</span>
           <h5 class="mb-0">💾 <?= htmlspecialchars($translator->translate('migration_step_import_db')) ?></h5>
@@ -222,11 +222,18 @@ function updateMigrationMethod() {
 function executeMigrationStep(step) {
     const statusOutput = document.getElementById('status-output');
     const statusContent = document.getElementById('status-content');
+    const stepElement = document.querySelector(`[data-step="${step}"]`);
     
     statusOutput.style.display = 'block';
     statusContent.textContent = 'Spouštění kroku: ' + step + '...';
     
-    // Simulate step execution
+    if (stepElement) {
+        stepElement.classList.remove('completed');
+        stepElement.classList.add('processing');
+    }
+    
+    const method = document.querySelector('input[name="migration_method"]:checked')?.value || 'local';
+    
     fetch('./index.php?action=migration_step', {
         method: 'POST',
         headers: {
@@ -235,34 +242,48 @@ function executeMigrationStep(step) {
         body: JSON.stringify({
             step: step,
             backupData: backupData,
-            method: document.querySelector('input[name="migration_method"]:checked')?.value || 'local'
+            method: method
         }),
         credentials: 'include'
     })
     .then(r => r.json())
     .then(data => {
-        statusContent.textContent = data.output || 'Krok dokončen';
+        const output = data.output || (data.result?.message) || 'Krok dokončen';
+        statusContent.textContent = output;
+        
         if (data.success) {
             completedSteps.add(step);
-            updateStepUI(step, 'completed');
+            if (stepElement) {
+                stepElement.classList.remove('processing');
+                stepElement.classList.add('completed');
+            }
+            // Update complete button status
+            updateCompleteButton();
         } else {
-            updateStepUI(step, 'error');
+            if (stepElement) {
+                stepElement.classList.remove('processing');
+            }
             statusContent.textContent = 'Chyba: ' + (data.error || 'Neznámá chyba');
         }
     })
     .catch(err => {
         statusContent.textContent = 'Chyba: ' + err.message;
-        updateStepUI(step, 'error');
+        if (stepElement) {
+            stepElement.classList.remove('processing');
+        }
     });
 }
 
-function updateStepUI(step, status) {
-    // Implementation for UI update
-    console.log('Update step UI:', step, status);
+function updateCompleteButton() {
+    // Enable complete button if all steps are done (or optional)
+    const completeBtn = document.getElementById('complete-btn');
+    if (completeBtn) {
+        completeBtn.disabled = false;
+    }
 }
 
 function completeMigration() {
-    alert('Migrace byla dokončena!');
+    alert('Migrace byla úspěšně dokončena!');
     window.location.href = './';
 }
 </script>
