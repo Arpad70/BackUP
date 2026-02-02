@@ -109,5 +109,23 @@ return [
     'help_sftp_remote' => 'Vzdálený adresář na SFTP serveru, kam se nahrajou zálohy',
     'help_sftp_password' => 'SFTP heslo pro ověření',
     'help_sftp_key' => 'Soukromý SSH klíč pro ověření (vložit obsah nebo nahrát soubor)',
-    'help_sftp_passphrase' => 'Heslo k soukromému klíči (pokud je chráněn)'
+    'help_sftp_passphrase' => 'Heslo k soukromému klíči (pokud je chráněn)',
+    
+    // environment diagnostics
+    'env_mysqldump' => 'Příkaz mysqldump',
+    'env_mysqldump_desc' => 'Potřebný pro zálohování MySQL databází',
+    'env_zip' => 'PHP ZIP rozšíření',
+    'env_zip_desc' => 'Potřebné pro kompresi souborů do archivů',
+    'env_phpseclib' => 'phpseclib knihovna',
+    'env_phpseclib_desc' => 'Volitelné, pro SSH připojení bez ssh2 rozšíření',
+    'env_ssh2' => 'SSH2 rozšíření',
+    'env_ssh2_desc' => 'Volitelné, pro SSH připojení přes SFTP',
+    'env_tmp_writable' => '/tmp adresář zapisovatelný',
+    'env_tmp_writable_desc' => 'Potřebný pro dočasné soubory během procesu',
+    'env_status_required' => 'Vyžadováno',
+    'env_status_recommended' => 'Doporučeno',
+    'env_status_ok' => 'OK',
+    'env_status_missing' => 'Chybí',
+    'env_status_available' => 'Dostupné',
+    'env_status_not_available' => 'Nedostupné'
 ];

@@ -109,5 +109,23 @@ return [
     'help_sftp_remote' => 'Remote directory on SFTP server where backups will be uploaded',
     'help_sftp_password' => 'SFTP password for authentication',
     'help_sftp_key' => 'Private SSH key for authentication (paste content or upload file)',
-    'help_sftp_passphrase' => 'Passphrase for the private key (if protected)'
+    'help_sftp_passphrase' => 'Passphrase for the private key (if protected)',
+    
+    // environment diagnostics
+    'env_mysqldump' => 'mysqldump command',
+    'env_mysqldump_desc' => 'Required for backing up MySQL databases',
+    'env_zip' => 'PHP ZIP extension',
+    'env_zip_desc' => 'Required for compressing files into archives',
+    'env_phpseclib' => 'phpseclib library',
+    'env_phpseclib_desc' => 'Optional, for SSH connection without ssh2 extension',
+    'env_ssh2' => 'SSH2 extension',
+    'env_ssh2_desc' => 'Optional, for SSH connection via SFTP',
+    'env_tmp_writable' => '/tmp directory writable',
+    'env_tmp_writable_desc' => 'Required for temporary files during the process',
+    'env_status_required' => 'Required',
+    'env_status_recommended' => 'Recommended',
+    'env_status_ok' => 'OK',
+    'env_status_missing' => 'Missing',
+    'env_status_available' => 'Available',
+    'env_status_not_available' => 'Not available'
 ];

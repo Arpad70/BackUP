@@ -53,12 +53,86 @@
     <?php if (isset($env) && is_array($env)): ?>
       <div class="p-3 rounded mb-3 section-environment">
         <h5 class="mb-3"><?= htmlspecialchars($translator->translate('environment_diagnostics')) ?? 'Diagnostika prostředí' ?></h5>
-        <div class="d-flex gap-2 flex-wrap">
-          <span class="badge bg-<?= $env['mysqldump'] ? 'success' : 'danger' ?>">mysqldump: <?= htmlspecialchars($translator->translate($env['mysqldump'] ? 'ok' : 'missing')) ?></span>
-          <span class="badge bg-<?= $env['zip_ext'] ? 'success' : 'danger' ?>">zip ext: <?= htmlspecialchars($translator->translate($env['zip_ext'] ? 'ok' : 'missing')) ?></span>
-          <span class="badge bg-<?= $env['phpseclib'] ? 'success' : 'warning' ?>">phpseclib: <?= htmlspecialchars($translator->translate($env['phpseclib'] ? 'available' : 'not_available')) ?></span>
-          <span class="badge bg-<?= $env['ssh2_ext'] ? 'success' : 'warning' ?>">ssh2: <?= htmlspecialchars($translator->translate($env['ssh2_ext'] ? 'available' : 'not_available')) ?></span>
-          <span class="badge bg-<?= $env['tmp_writable'] ? 'success' : 'danger' ?>">tmp writable: <?= htmlspecialchars($translator->translate($env['tmp_writable'] ? 'yes' : 'no')) ?></span>
+        <div class="row g-3">
+          <!-- mysqldump -->
+          <div class="col-md-6">
+            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
+              <span style="font-size: 1.5rem; min-width: 2rem;">
+                <?= $env['mysqldump'] ? '✅' : '❌' ?>
+              </span>
+              <div style="flex: 1;">
+                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_mysqldump_desc')) ?>"><?= htmlspecialchars($translator->translate('env_mysqldump')) ?></strong>
+                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_required')) ?></div>
+                <span class="badge <?= $env['mysqldump'] ? 'bg-success' : 'bg-danger' ?> mt-2">
+                  <?= htmlspecialchars($translator->translate($env['mysqldump'] ? 'ok' : 'missing')) ?>
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- zip ext -->
+          <div class="col-md-6">
+            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
+              <span style="font-size: 1.5rem; min-width: 2rem;">
+                <?= $env['zip_ext'] ? '✅' : '❌' ?>
+              </span>
+              <div style="flex: 1;">
+                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_zip_desc')) ?>"><?= htmlspecialchars($translator->translate('env_zip')) ?></strong>
+                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_required')) ?></div>
+                <span class="badge <?= $env['zip_ext'] ? 'bg-success' : 'bg-danger' ?> mt-2">
+                  <?= htmlspecialchars($translator->translate($env['zip_ext'] ? 'ok' : 'missing')) ?>
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- phpseclib -->
+          <div class="col-md-6">
+            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
+              <span style="font-size: 1.5rem; min-width: 2rem;">
+                <?= $env['phpseclib'] ? '✅' : '⚠️' ?>
+              </span>
+              <div style="flex: 1;">
+                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_phpseclib_desc')) ?>"><?= htmlspecialchars($translator->translate('env_phpseclib')) ?></strong>
+                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_recommended')) ?></div>
+                <span class="badge <?= $env['phpseclib'] ? 'bg-success' : 'bg-warning' ?> mt-2">
+                  <?= htmlspecialchars($translator->translate($env['phpseclib'] ? 'available' : 'not_available')) ?>
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- ssh2 ext -->
+          <div class="col-md-6">
+            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
+              <span style="font-size: 1.5rem; min-width: 2rem;">
+                <?= $env['ssh2_ext'] ? '✅' : '⚠️' ?>
+              </span>
+              <div style="flex: 1;">
+                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_ssh2_desc')) ?>"><?= htmlspecialchars($translator->translate('env_ssh2')) ?></strong>
+                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_recommended')) ?></div>
+                <span class="badge <?= $env['ssh2_ext'] ? 'bg-success' : 'bg-warning' ?> mt-2">
+                  <?= htmlspecialchars($translator->translate($env['ssh2_ext'] ? 'available' : 'not_available')) ?>
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- tmp writable -->
+          <div class="col-md-6">
+            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
+              <span style="font-size: 1.5rem; min-width: 2rem;">
+                <?= $env['tmp_writable'] ? '✅' : '❌' ?>
+              </span>
+              <div style="flex: 1;">
+                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_tmp_writable_desc')) ?>"><?= htmlspecialchars($translator->translate('env_tmp_writable')) ?></strong>
+                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_required')) ?></div>
+                <span class="badge <?= $env['tmp_writable'] ? 'bg-success' : 'bg-danger' ?> mt-2">
+                  <?= htmlspecialchars($translator->translate($env['tmp_writable'] ? 'yes' : 'no')) ?>
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     <?php endif; ?>
