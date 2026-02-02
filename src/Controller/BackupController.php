@@ -101,11 +101,17 @@ class BackupController
                     $appLog = implode("\n", $tail);
                 }
 
+                // pass translator to result view
+                $lang = $_GET['lang'] ?? $_COOKIE['lang'] ?? 'cs';
+                $translator = new \BackupApp\Service\Translator($lang, ['fallback' => 'cs', 'path' => dirname(__DIR__,2) . '/lang']);
                 include __DIR__ . '/../View/result.php';
                 return;
             }
 
             $env = $model->environmentChecks();
+            // setup translator
+            $lang = $_GET['lang'] ?? $_COOKIE['lang'] ?? 'cs';
+            $translator = new \BackupApp\Service\Translator($lang, ['fallback' => 'cs', 'path' => dirname(__DIR__,2) . '/lang']);
             include __DIR__ . '/../View/form.php';
         } catch (\Throwable $e) {
             header('HTTP/1.1 500 Internal Server Error');

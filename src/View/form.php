@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>BackUP — Migrate / Backup</title>
+    <title><?= htmlspecialchars($translator->translate('title')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { padding: 2rem; }
@@ -14,7 +14,17 @@
 <body>
 <div class="card shadow-sm">
   <div class="card-body">
-    <h1 class="card-title mb-3">BackUP — migrate or backup site</h1>
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <h1 class="card-title mb-3"><?= htmlspecialchars($translator->translate('title')) ?></h1>
+      <div>
+        <form method="get" class="d-flex align-items-center">
+          <select name="lang" onchange="this.form.submit()" class="form-select form-select-sm">
+            <option value="cs" <?= ($translator->getLocale() === 'cs') ? 'selected' : '' ?>>cs</option>
+            <option value="en" <?= ($translator->getLocale() === 'en') ? 'selected' : '' ?>>en</option>
+          </select>
+        </form>
+      </div>
+    </div>
 
     <?php if (isset($env) && is_array($env)): ?>
       <div class="mb-3">
@@ -31,11 +41,11 @@
     <form id="backupForm" method="post" enctype="multipart/form-data">
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">Source site path (absolute)</label>
+          <label class="form-label"><?= htmlspecialchars($translator->translate('source_site_path')) ?></label>
           <input id="site_path" name="site_path" type="text" class="form-control" placeholder="/var/www/html/example.com" value="<?= htmlspecialchars($db_config['site_path'] ?? '') ?>">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Target site path (absolute) — optional</label>
+          <label class="form-label"><?= htmlspecialchars($translator->translate('target_site_path')) ?></label>
           <input id="target_site_path" name="target_site_path" type="text" class="form-control" placeholder="/var/www/html/example-target.com">
           <div class="form-text">If provided, files will be copied locally from source to target (no SFTP needed).</div>
         </div>
@@ -48,48 +58,48 @@
             <div class="col-md-3"><input name="target_db_name" class="form-control" placeholder="DB name"></div>
             <div class="col-md-2"><input name="target_db_pass" type="password" class="form-control" placeholder="DB password"></div>
           </div>
-          <div class="form-text">If these are provided, a dump of the target DB will be included in the final backup.</div>
+          <div class="form-text"><?= htmlspecialchars($translator->translate('target_db_section_note')) ?></div>
         </div>
 
         <div class="col-12">
-          <h5 class="mt-3">Database</h5>
+          <h5 class="mt-3"><?= htmlspecialchars($translator->translate('database')) ?></h5>
           <div class="row g-2">
             <div class="col-md-6">
-              <label class="form-label">Host</label>
+              <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
               <input name="db_host" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_host'] ?? '127.0.0.1') ?>">
             </div>
             <div class="col-md-2">
-              <label class="form-label">Port</label>
+              <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
               <input name="db_port" type="text" class="form-control" value="3306">
             </div>
             <div class="col-md-4">
-              <label class="form-label">User</label>
+              <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
               <input name="db_user" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_user'] ?? '') ?>">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Password</label>
+              <label class="form-label"><?= htmlspecialchars($translator->translate('password')) ?></label>
               <input name="db_pass" type="password" class="form-control" value="<?= htmlspecialchars($db_config['db_password'] ?? '') ?>">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Database name</label>
+              <label class="form-label"><?= htmlspecialchars($translator->translate('database_name')) ?></label>
               <input name="db_name" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_name'] ?? '') ?>">
             </div>
           </div>
         </div>
 
         <div class="col-12">
-          <h5 class="mt-3">SFTP (optional, only if Target path not provided)</h5>
+          <h5 class="mt-3"><?= htmlspecialchars($translator->translate('sftp_section')) ?></h5>
           <div class="row g-2">
             <div class="col-md-4">
-              <label class="form-label">Host</label>
+              <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
               <input name="sftp_host" class="form-control" placeholder="sftp.example.com">
             </div>
             <div class="col-md-2">
-              <label class="form-label">Port</label>
+              <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
               <input name="sftp_port" class="form-control" value="22">
             </div>
             <div class="col-md-3">
-              <label class="form-label">User</label>
+              <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
               <input name="sftp_user" class="form-control" placeholder="user">
             </div>
             <div class="col-md-3">
@@ -101,28 +111,28 @@
           <div class="mt-2">
             <div class="form-check form-check-inline">
               <input class="form-check-input" type="radio" name="sftp_auth" id="sftpAuthPass" value="password" checked>
-              <label class="form-check-label" for="sftpAuthPass">Password</label>
+              <label class="form-check-label" for="sftpAuthPass"><?= htmlspecialchars($translator->translate('sftp_auth_password')) ?></label>
             </div>
             <div class="form-check form-check-inline">
               <input class="form-check-input" type="radio" name="sftp_auth" id="sftpAuthKey" value="key">
-              <label class="form-check-label" for="sftpAuthKey">Key (paste or upload)</label>
+              <label class="form-check-label" for="sftpAuthKey"><?= htmlspecialchars($translator->translate('sftp_auth_key')) ?></label>
             </div>
           </div>
 
           <div id="sftp-password-fields" class="mt-2">
-            <input name="sftp_pass" class="form-control" placeholder="SFTP password">
+            <input name="sftp_pass" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('sftp_password_placeholder')) ?>">
           </div>
 
           <div id="sftp-key-fields" class="mt-2" style="display:none;">
             <textarea name="sftp_key" rows="6" class="form-control" placeholder="Paste private key here"></textarea>
             <div class="mt-2"><input name="sftp_key_file" type="file" class="form-control" accept=".pem,.key,text/plain"></div>
             <div class="mt-2"><input name="sftp_key_passphrase" type="password" class="form-control" placeholder="Key passphrase (optional)"></div>
-            <div class="form-text mt-1">Uploaded key is read and removed immediately; it will not be stored.</div>
+            <div class="form-text mt-1"><?= htmlspecialchars($translator->translate('private_key_notice')) ?></div>
           </div>
         </div>
 
         <div class="col-12 d-flex justify-content-end mt-3">
-          <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Run backup / migrate</button>
+          <button type="submit" class="btn btn-primary btn-lg" id="submitBtn"><?= htmlspecialchars($translator->translate('run_button')) ?></button>
         </div>
       </div>
     </form>
