@@ -2,16 +2,21 @@
 declare(strict_types=1);
 namespace BackupApp\Model;
 
-use phpseclib3\Net\SFTP;
+use BackupApp\Service\DatabaseDumper;
+use BackupApp\Service\SftpUploader;
 
 class BackupModel
 {
     protected string $tmpDir;
     private ?string $progressFile = null;
+    private DatabaseDumper $dumper;
+    private SftpUploader $uploader;
 
     public function __construct()
     {
         $this->tmpDir = sys_get_temp_dir();
+        $this->dumper = new DatabaseDumper();
+        $this->uploader = new SftpUploader();
     }
 
     private function setProgress(int $percent, string $message = '', string $step = ''): void
@@ -51,12 +56,37 @@ class BackupModel
 
         $this->setProgress(10, 'Dumping database...', 'db_dump');
         $dbFile = $this->tmpDir . '/db_dump_' . time() . '.sql';
+        $dbHost = $data['db_host'] ?? null;
+        if (!is_string($dbHost) || $dbHost === '') {
+            $dbHost = '127.0.0.1';
+        }
+        $dbUser = $data['db_user'] ?? null;
+        if (!is_string($dbUser)) {
+            $dbUser = '';
+        }
+        $dbPass = $data['db_pass'] ?? null;
+        if (!is_string($dbPass)) {
+            $dbPass = '';
+        }
+        $dbName = $data['db_name'] ?? null;
+        if (!is_string($dbName)) {
+            $dbName = '';
+        }
+        $dbPort = $data['db_port'] ?? null;
+        if (is_int($dbPort)) {
+            // ok
+        } elseif (is_string($dbPort) && ctype_digit($dbPort)) {
+            $dbPort = (int) $dbPort;
+        } else {
+            $dbPort = 3306;
+        }
+
         $dbResult = $this->dumpDatabase(
-            $data['db_host'] ?? '127.0.0.1',
-            $data['db_user'] ?? '',
-            $data['db_pass'] ?? '',
-            $data['db_name'] ?? '',
-            $data['db_port'] ?? 3306,
+            $dbHost,
+            $dbUser,
+            $dbPass,
+            $dbName,
+            $dbPort,
             $dbFile
         );
 
@@ -73,8 +103,8 @@ class BackupModel
         }
         $this->setProgress(35, 'Database dump completed');
 
-        $sitePath = $data['site_path'] ?? '';
-        if (! $sitePath || ! is_dir($sitePath)) {
+        $sitePath = $data['site_path'] ?? null;
+        if (!is_string($sitePath) || $sitePath === '' || ! is_dir($sitePath)) {
             $response['errors'][] = 'Invalid site path';
             $this->setProgress(50, 'Error: Invalid site path');
             return $response;
@@ -91,11 +121,31 @@ class BackupModel
         }
         $this->setProgress(65, 'Files compressed');
 
-        $sftpHost = $data['sftp_host'] ?? '';
-        $sftpPort = $data['sftp_port'] ?? 22;
-        $sftpUser = $data['sftp_user'] ?? '';
-        $sftpPass = $data['sftp_pass'] ?? '';
-        $remoteDir = rtrim($data['sftp_remote'] ?? '.', '/');
+        $sftpHost = $data['sftp_host'] ?? null;
+        if (!is_string($sftpHost)) {
+            $sftpHost = '';
+        }
+        $sftpPort = $data['sftp_port'] ?? null;
+        if (is_int($sftpPort)) {
+            // ok
+        } elseif (is_string($sftpPort) && ctype_digit($sftpPort)) {
+            $sftpPort = (int) $sftpPort;
+        } else {
+            $sftpPort = 22;
+        }
+        $sftpUser = $data['sftp_user'] ?? null;
+        if (!is_string($sftpUser)) {
+            $sftpUser = '';
+        }
+        $sftpPass = $data['sftp_pass'] ?? null;
+        if (!is_string($sftpPass)) {
+            $sftpPass = '';
+        }
+        $remoteDir = $data['sftp_remote'] ?? null;
+        if (!is_string($remoteDir)) {
+            $remoteDir = '.';
+        }
+        $remoteDir = rtrim($remoteDir, '/');
 
         $this->setProgress(70, 'Uploading database to SFTP...', 'upload_db');
         $uplDB = $this->sftpUpload($dbFile, $remoteDir . '/' . basename($dbFile), $sftpHost, $sftpPort, $sftpUser, $sftpPass);
@@ -134,53 +184,7 @@ class BackupModel
      */
     public function dumpDatabase(string $host, string $user, string $pass, string $name, int $port, string $outfile): array
     {
-        $hostArg = escapeshellarg($host);
-        $userArg = escapeshellarg($user);
-        $nameArg = escapeshellarg($name);
-        $port = (int)$port;
-
-        // Build mysqldump command without password on the command line.
-        // We'll capture stdout and write it to the outfile to avoid exposing credentials.
-        $cmd = "mysqldump --host={$hostArg} --port={$port} --user={$userArg} --single-transaction --quick --routines --triggers {$nameArg}";
-
-        $descriptors = [
-            1 => ['pipe', 'w'], // stdout
-            2 => ['pipe', 'w'], // stderr
-        ];
-
-        $process = @proc_open($cmd, $descriptors, $pipes, null, ['MYSQL_PWD' => $pass]);
-        if (!is_resource($process)) {
-            $msg = 'Failed to start mysqldump process';
-            error_log('dumpDatabase: ' . $msg . ' -- cmd: ' . $cmd);
-            return ['ok' => false, 'message' => $msg];
-        }
-
-        // Read stdout and write to outfile
-        $stdout = stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
-
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[2]);
-
-        $rc = proc_close($process);
-
-        // Write stdout to file if any
-        if ($stdout !== false) {
-            $written = @file_put_contents($outfile, $stdout);
-        } else {
-            $written = false;
-        }
-
-        $outText = trim(($stderr !== false ? $stderr : '') . "\n" . ($stdout !== false ? $stdout : ''));
-
-        if ($rc === 0 && $written !== false && file_exists($outfile)) {
-            $msg = $outText ?: 'Dump created';
-            return ['ok' => true, 'message' => $msg];
-        }
-
-        $msg = $outText ?: 'mysqldump failed with exit code ' . intval($rc);
-        error_log('dumpDatabase: ' . $msg . ' -- cmd: ' . $cmd);
-        return ['ok' => false, 'message' => $msg];
+        return $this->dumper->dump($host, $user, $pass, $name, $port, $outfile);
     }
 
     public function zipDirectory(string $source, string $destination): bool
@@ -203,6 +207,7 @@ class BackupModel
         if (is_dir($sourceReal)) {
             $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($sourceReal), \RecursiveIteratorIterator::LEAVES_ONLY);
             foreach ($files as $name => $file) {
+                /** @var \SplFileInfo $file */
                 if (! $file->isFile()) continue;
                 $filePath = $file->getRealPath();
                 if ($filePath === false) continue;
@@ -224,84 +229,17 @@ class BackupModel
      */
     public function sftpUpload(string $local, string $remote, string $host, int $port, string $user, string $pass): array
     {
-        if (!file_exists($local)) {
-            $msg = 'Local file not found: ' . $local;
-            error_log($msg);
-            $this->setProgress(90, $msg);
-            return ['ok' => false, 'message' => $msg];
+        $ret = $this->uploader->upload($local, $remote, $host, $port, $user, $pass);
+        $message = $ret['message'] ?? null;
+        if (!is_string($message)) {
+            $message = '';
         }
-        if (class_exists(SFTP::class)) {
-            try {
-                $sftp = new SFTP($host, (int)$port);
-                if (! $sftp->login($user, $pass)) {
-                    $msg = 'SFTP login failed for user ' . $user . ' on ' . $host . ':' . $port;
-                    error_log($msg);
-                    $this->setProgress(90, $msg);
-                    return ['ok' => false, 'message' => $msg];
-                }
-                $remoteDir = dirname($remote);
-                if (! $sftp->mkdir($remoteDir, -1, true)) {
-                    $msg = 'SFTP mkdir failed: ' . $remoteDir;
-                    error_log($msg);
-                    $this->setProgress(90, $msg);
-                    // continue, put() may still create directory depending on server
-                }
-                $ok = $sftp->put($remote, $local, SFTP::SOURCE_LOCAL_FILE);
-                if (! $ok) {
-                    $msg = 'SFTP put failed for ' . $remote . ' to ' . $host;
-                    error_log($msg);
-                    $this->setProgress(90, $msg);
-                    return ['ok' => false, 'message' => $msg];
-                }
-                $msg = 'Uploaded ' . basename($local) . ' to ' . $host . ':' . $remote;
-                return ['ok' => true, 'message' => $msg];
-            } catch (\Throwable $e) {
-                $msg = 'SFTP exception: ' . $e->getMessage();
-                error_log($msg);
-                $this->setProgress(90, $msg);
-                return ['ok' => false, 'message' => $msg];
-            }
+        $okFlag = $ret['ok'] ?? false;
+        $okFlag = (bool) $okFlag;
+        if ($message !== '') {
+            $this->setProgress($okFlag ? 95 : 90, $message);
         }
-
-        if (function_exists('ssh2_connect')) {
-            $connection = @\ssh2_connect($host, $port);
-            if (! $connection) {
-                $msg = 'ssh2_connect failed to ' . $host . ':' . $port;
-                error_log($msg);
-                $this->setProgress(90, $msg);
-                return ['ok' => false, 'message' => $msg];
-            }
-            if (! @\ssh2_auth_password($connection, $user, $pass)) {
-                $msg = 'ssh2_auth_password failed for user ' . $user . ' on ' . $host;
-                error_log($msg);
-                $this->setProgress(90, $msg);
-                return ['ok' => false, 'message' => $msg];
-            }
-            $sftp = \ssh2_sftp($connection);
-            $remoteStream = @fopen("ssh2.sftp://" . intval($sftp) . $remote, 'w');
-            if (! $remoteStream) {
-                $msg = 'ssh2 fopen failed for remote path: ' . $remote;
-                error_log($msg);
-                $this->setProgress(90, $msg);
-                return ['ok' => false, 'message' => $msg];
-            }
-            $data_to_send = @file_get_contents($local);
-            if ($data_to_send === false) {
-                $msg = 'Failed reading local file: ' . $local;
-                error_log($msg);
-                $this->setProgress(90, $msg);
-                return ['ok' => false, 'message' => $msg];
-            }
-            fwrite($remoteStream, $data_to_send);
-            fclose($remoteStream);
-            $msg = 'Uploaded ' . basename($local) . ' to ' . $host . ':' . $remote . ' via ssh2';
-            return ['ok' => true, 'message' => $msg];
-        }
-
-        $msg = 'No SFTP method available (phpseclib or ssh2)';
-        error_log($msg);
-        $this->setProgress(90, $msg);
-        return ['ok' => false, 'message' => $msg];
+        return $ret;
     }
 
     /**
