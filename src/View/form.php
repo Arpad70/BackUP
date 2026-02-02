@@ -45,6 +45,9 @@
         .section-sftp { border-left-color: #dc2626; background-color: #fee2e2; }
         .section-sftp h5 { color: #7f1d1d; }
         
+        /* SFTP row spacing */
+        .row.sftp-row { margin-top: 2rem; }
+        
         .section-actions { text-align: center; padding-top: 1rem; }
         .section-actions .btn { padding: 0.75rem 3rem; font-size: 1.1rem; }
     </style>
@@ -156,7 +159,7 @@
       </div>
 
       <!-- SFTP Section -->
-      <div class="row g-3">
+      <div class="row g-3 sftp-row">
         <div class="col-12">
           <div class="card-section section-sftp">
             <h5><?= htmlspecialchars($translator->translate('sftp_section')) ?></h5>
