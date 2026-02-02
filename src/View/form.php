@@ -6,9 +6,43 @@
     <title><?= htmlspecialchars($translator->translate('title')) ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { padding: 2rem; }
-        .card { max-width: 1100px; margin: 0 auto; }
+        body { padding: 2rem; background-color: #f8f9fa; }
+        .card { max-width: 1100px; margin: 0 auto; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .card-body { background: #ffffff; }
         .progress-fill { transition: width .3s; }
+        
+        /* Card sections */
+        .card-section {
+            border-left: 4px solid;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background-color: #fafbfc;
+            border-radius: 4px;
+        }
+        .card-section h5 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        /* Color themes */
+        .section-environment { border-left-color: #27ae60; background-color: #f0f8f4; }
+        .section-environment h5 { color: #27ae60; }
+        
+        .section-paths { border-left-color: #3498db; background-color: #f0f6fb; }
+        .section-paths h5 { color: #3498db; }
+        
+        .section-source-db { border-left-color: #f39c12; background-color: #fef9f0; }
+        .section-source-db h5 { color: #f39c12; }
+        
+        .section-target-db { border-left-color: #9b59b6; background-color: #faf6fd; }
+        .section-target-db h5 { color: #9b59b6; }
+        
+        .section-sftp { border-left-color: #e74c3c; background-color: #fdf6f6; }
+        .section-sftp h5 { color: #e74c3c; }
+        
+        .section-actions { text-align: center; padding-top: 1rem; }
+        .section-actions .btn { padding: 0.75rem 3rem; font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -28,113 +62,138 @@
     </div>
 
     <?php if (isset($env) && is_array($env)): ?>
-      <div class="mb-3">
-          <div class="d-flex gap-3 flex-wrap">
-          <div class="badge bg-<?= $env['mysqldump'] ? 'success' : 'danger' ?>">mysqldump: <?= htmlspecialchars($translator->translate($env['mysqldump'] ? 'ok' : 'missing')) ?></div>
-          <div class="badge bg-<?= $env['zip_ext'] ? 'success' : 'danger' ?>">zip ext: <?= htmlspecialchars($translator->translate($env['zip_ext'] ? 'ok' : 'missing')) ?></div>
-          <div class="badge bg-<?= $env['phpseclib'] ? 'success' : 'warning' ?>">phpseclib: <?= htmlspecialchars($translator->translate($env['phpseclib'] ? 'available' : 'not_available')) ?></div>
-          <div class="badge bg-<?= $env['ssh2_ext'] ? 'success' : 'warning' ?>">ssh2: <?= htmlspecialchars($translator->translate($env['ssh2_ext'] ? 'available' : 'not_available')) ?></div>
-          <div class="badge bg-<?= $env['tmp_writable'] ? 'success' : 'danger' ?>">tmp writable: <?= htmlspecialchars($translator->translate($env['tmp_writable'] ? 'yes' : 'no')) ?></div>
+      <div class="card-section section-environment">
+        <h5><?= htmlspecialchars($translator->translate('environment_diagnostics')) ?? 'Diagnostika prostředí' ?></h5>
+        <div class="d-flex gap-2 flex-wrap">
+          <span class="badge bg-<?= $env['mysqldump'] ? 'success' : 'danger' ?>">mysqldump: <?= htmlspecialchars($translator->translate($env['mysqldump'] ? 'ok' : 'missing')) ?></span>
+          <span class="badge bg-<?= $env['zip_ext'] ? 'success' : 'danger' ?>">zip ext: <?= htmlspecialchars($translator->translate($env['zip_ext'] ? 'ok' : 'missing')) ?></span>
+          <span class="badge bg-<?= $env['phpseclib'] ? 'success' : 'warning' ?>">phpseclib: <?= htmlspecialchars($translator->translate($env['phpseclib'] ? 'available' : 'not_available')) ?></span>
+          <span class="badge bg-<?= $env['ssh2_ext'] ? 'success' : 'warning' ?>">ssh2: <?= htmlspecialchars($translator->translate($env['ssh2_ext'] ? 'available' : 'not_available')) ?></span>
+          <span class="badge bg-<?= $env['tmp_writable'] ? 'success' : 'danger' ?>">tmp writable: <?= htmlspecialchars($translator->translate($env['tmp_writable'] ? 'yes' : 'no')) ?></span>
         </div>
       </div>
     <?php endif; ?>
 
     <form id="backupForm" method="post" enctype="multipart/form-data">
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label"><?= htmlspecialchars($translator->translate('source_site_path')) ?></label>
-          <input id="site_path" name="site_path" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_site_path_placeholder')) ?>" value="<?= htmlspecialchars($db_config['site_path'] ?? '') ?>">
-        </div>
+      <!-- Paths Section -->
+      <div class="card-section section-paths">
+        <h5><?= htmlspecialchars($translator->translate('paths') ?? 'Cesty') ?></h5>
+        <div class="row g-3">
           <div class="col-md-6">
-          <label class="form-label"><?= htmlspecialchars($translator->translate('target_site_path')) ?></label>
-          <input id="target_site_path" name="target_site_path" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_target_site_placeholder')) ?>">
-          <div class="form-text"><?= htmlspecialchars($translator->translate('files_will_be_copied')) ?></div>
-        </div>
-        <div class="col-12">
-          <h5 class="mt-3"><?= htmlspecialchars($translator->translate('target_site_db_heading')) ?></h5>
-          <div class="row g-2">
-            <div class="col-md-3"><input name="target_db_host" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_host_placeholder')) ?>"></div>
-            <div class="col-md-1"><input name="target_db_port" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_port_placeholder')) ?>"></div>
-            <div class="col-md-3"><input name="target_db_user" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_user_placeholder')) ?>"></div>
-            <div class="col-md-3"><input name="target_db_name" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_name_placeholder')) ?>"></div>
-            <div class="col-md-2"><input name="target_db_pass" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_password_placeholder')) ?>"></div>
+            <label class="form-label"><?= htmlspecialchars($translator->translate('source_site_path')) ?></label>
+            <input id="site_path" name="site_path" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_site_path_placeholder')) ?>" value="<?= htmlspecialchars($db_config['site_path'] ?? '') ?>">
           </div>
-          <div class="form-text"><?= htmlspecialchars($translator->translate('target_db_section_note')) ?></div>
-        </div>
-
-        <div class="col-12">
-          <h5 class="mt-3"><?= htmlspecialchars($translator->translate('database')) ?></h5>
-          <div class="row g-2">
-            <div class="col-md-6">
-              <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
-              <input name="db_host" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_host'] ?? '127.0.0.1') ?>">
-            </div>
-            <div class="col-md-2">
-              <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
-              <input name="db_port" type="text" class="form-control" value="3306">
-            </div>
-            <div class="col-md-4">
-              <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
-              <input name="db_user" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_user'] ?? '') ?>">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label"><?= htmlspecialchars($translator->translate('password')) ?></label>
-              <input name="db_pass" type="password" class="form-control" value="<?= htmlspecialchars($db_config['db_password'] ?? '') ?>">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label"><?= htmlspecialchars($translator->translate('database_name')) ?></label>
-              <input name="db_name" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_name'] ?? '') ?>">
-            </div>
+          <div class="col-md-6">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('target_site_path')) ?></label>
+            <input id="target_site_path" name="target_site_path" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_target_site_placeholder')) ?>">
+            <div class="form-text"><?= htmlspecialchars($translator->translate('files_will_be_copied')) ?></div>
           </div>
         </div>
+      </div>
 
-        <div class="col-12">
-          <h5 class="mt-3"><?= htmlspecialchars($translator->translate('sftp_section')) ?></h5>
-          <div class="row g-2">
-            <div class="col-md-4">
-              <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
-              <input name="sftp_host" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_sftp_host')) ?>">
-            </div>
-            <div class="col-md-2">
-              <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
-              <input name="sftp_port" class="form-control" value="22">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
-              <input name="sftp_user" class="form-control" placeholder="user">
-            </div>
-            <div class="col-md-3">
-              <label class="form-label"><?= htmlspecialchars($translator->translate('remote_dir')) ?></label>
-              <input name="sftp_remote" class="form-control" placeholder="/backups" value="/backups">
-            </div>
+      <!-- Source Database Section -->
+      <div class="card-section section-source-db">
+        <h5><?= htmlspecialchars($translator->translate('database') ?? 'Zdrojová databáze') ?></h5>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
+            <input name="db_host" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_host'] ?? '127.0.0.1') ?>">
           </div>
-
-          <div class="mt-2">
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="sftp_auth" id="sftpAuthPass" value="password" checked>
-              <label class="form-check-label" for="sftpAuthPass"><?= htmlspecialchars($translator->translate('sftp_auth_password')) ?></label>
-            </div>
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="sftp_auth" id="sftpAuthKey" value="key">
-              <label class="form-check-label" for="sftpAuthKey"><?= htmlspecialchars($translator->translate('sftp_auth_key')) ?></label>
-            </div>
+          <div class="col-md-2">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
+            <input name="db_port" type="text" class="form-control" value="3306">
           </div>
-
-          <div id="sftp-password-fields" class="mt-2">
-            <input name="sftp_pass" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('sftp_password_placeholder')) ?>">
+          <div class="col-md-4">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
+            <input name="db_user" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_user'] ?? '') ?>">
           </div>
+          <div class="col-md-6">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('password')) ?></label>
+            <input name="db_pass" type="password" class="form-control" value="<?= htmlspecialchars($db_config['db_password'] ?? '') ?>">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('database_name')) ?></label>
+            <input name="db_name" type="text" class="form-control" value="<?= htmlspecialchars($db_config['db_name'] ?? '') ?>">
+          </div>
+        </div>
+      </div>
 
-          <div id="sftp-key-fields" class="mt-2" style="display:none;">
-            <textarea name="sftp_key" rows="6" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('sftp_auth_key')) ?>"></textarea>
-            <div class="mt-2"><input name="sftp_key_file" type="file" class="form-control" accept=".pem,.key,text/plain"></div>
-            <div class="mt-2"><input name="sftp_key_passphrase" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('key_passphrase_optional')) ?>"></div>
-            <div class="form-text mt-1"><?= htmlspecialchars($translator->translate('private_key_notice')) ?></div>
+      <!-- Target Database Section -->
+      <div class="card-section section-target-db">
+        <h5><?= htmlspecialchars($translator->translate('target_site_db_heading')) ?></h5>
+        <div class="row g-2">
+          <div class="col-md-6">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('db_host_placeholder')) ?></label>
+            <input name="target_db_host" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_host_placeholder')) ?>">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('db_port_placeholder')) ?></label>
+            <input name="target_db_port" class="form-control" placeholder="3306">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('db_user_placeholder')) ?></label>
+            <input name="target_db_user" class="form-control" placeholder="user">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('db_name_placeholder')) ?></label>
+            <input name="target_db_name" class="form-control" placeholder="database_name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('db_password_placeholder')) ?></label>
+            <input name="target_db_pass" type="password" class="form-control" placeholder="password">
+          </div>
+        </div>
+        <div class="form-text mt-2"><?= htmlspecialchars($translator->translate('target_db_section_note')) ?></div>
+      </div>
+
+      <!-- SFTP Section -->
+      <div class="card-section section-sftp">
+        <h5><?= htmlspecialchars($translator->translate('sftp_section')) ?></h5>
+        <div class="row g-2">
+          <div class="col-md-4">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
+            <input name="sftp_host" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_sftp_host')) ?>">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
+            <input name="sftp_port" class="form-control" value="22">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
+            <input name="sftp_user" class="form-control" placeholder="user">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label"><?= htmlspecialchars($translator->translate('remote_dir')) ?></label>
+            <input name="sftp_remote" class="form-control" placeholder="/backups" value="/backups">
           </div>
         </div>
 
-        <div class="col-12 d-flex justify-content-end mt-3">
-          <button type="submit" class="btn btn-primary btn-lg" id="submitBtn"><?= htmlspecialchars($translator->translate('run_button')) ?></button>
+        <div class="mt-3">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="sftp_auth" id="sftpAuthPass" value="password" checked>
+            <label class="form-check-label" for="sftpAuthPass"><?= htmlspecialchars($translator->translate('sftp_auth_password')) ?></label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="sftp_auth" id="sftpAuthKey" value="key">
+            <label class="form-check-label" for="sftpAuthKey"><?= htmlspecialchars($translator->translate('sftp_auth_key')) ?></label>
+          </div>
         </div>
+
+        <div id="sftp-password-fields" class="mt-3">
+          <input name="sftp_pass" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('sftp_password_placeholder')) ?>">
+        </div>
+
+        <div id="sftp-key-fields" class="mt-3" style="display:none;">
+          <textarea name="sftp_key" rows="6" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('sftp_auth_key')) ?>"></textarea>
+          <div class="mt-2"><input name="sftp_key_file" type="file" class="form-control" accept=".pem,.key,text/plain"></div>
+          <div class="mt-2"><input name="sftp_key_passphrase" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('key_passphrase_optional')) ?>"></div>
+          <div class="form-text mt-2"><?= htmlspecialchars($translator->translate('private_key_notice')) ?></div>
+        </div>
+      </div>
+
+      <!-- Action Button - Centered -->
+      <div class="section-actions">
+        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn"><?= htmlspecialchars($translator->translate('run_button')) ?></button>
       </div>
     </form>
   </div>
