@@ -39,6 +39,17 @@
           <input id="target_site_path" name="target_site_path" type="text" class="form-control" placeholder="/var/www/html/example-target.com">
           <div class="form-text">If provided, files will be copied locally from source to target (no SFTP needed).</div>
         </div>
+        <div class="col-12">
+          <h5 class="mt-3">Target site database (optional)</h5>
+          <div class="row g-2">
+            <div class="col-md-3"><input name="target_db_host" class="form-control" placeholder="DB host"></div>
+            <div class="col-md-1"><input name="target_db_port" class="form-control" placeholder="3306"></div>
+            <div class="col-md-3"><input name="target_db_user" class="form-control" placeholder="DB user"></div>
+            <div class="col-md-3"><input name="target_db_name" class="form-control" placeholder="DB name"></div>
+            <div class="col-md-2"><input name="target_db_pass" type="password" class="form-control" placeholder="DB password"></div>
+          </div>
+          <div class="form-text">If these are provided, a dump of the target DB will be included in the final backup.</div>
+        </div>
 
         <div class="col-md-6">
           <h5 class="mt-3">Database</h5>
@@ -65,10 +76,22 @@
         <div class="col-12">
           <h5 class="mt-3">SFTP (optional, only if Target path not provided)</h5>
           <div class="row g-2">
-            <div class="col-md-4"><input name="sftp_host" class="form-control" placeholder="sftp.example.com"></div>
-            <div class="col-md-2"><input name="sftp_port" class="form-control" value="22"></div>
-            <div class="col-md-3"><input name="sftp_user" class="form-control" placeholder="user"></div>
-            <div class="col-md-3"><input name="sftp_remote" class="form-control" placeholder="/backups" value="/backups"></div>
+            <div class="col-md-4">
+              <label class="form-label">Host</label>
+              <input name="sftp_host" class="form-control" placeholder="sftp.example.com">
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Port</label>
+              <input name="sftp_port" class="form-control" value="22">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">User</label>
+              <input name="sftp_user" class="form-control" placeholder="user">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Remote dir</label>
+              <input name="sftp_remote" class="form-control" placeholder="/backups" value="/backups">
+            </div>
           </div>
 
           <div class="mt-2">
