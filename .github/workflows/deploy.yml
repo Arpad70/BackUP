@@ -3,6 +3,7 @@ name: Deploy to backup.eshopion.eu
 on:
   push:
     branches: [ main ]
+  workflow_dispatch: {}
 
 jobs:
   deploy:
