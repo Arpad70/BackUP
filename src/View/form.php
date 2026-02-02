@@ -12,44 +12,26 @@
             min-height: 100vh;
         }
         .card { max-width: 1100px; margin: 0 auto; border: none; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
-        .card-body { background: #ffffff; padding: 2rem 2.5rem; }
         .progress-fill { transition: width .3s; }
         
-        /* Card sections */
-        .card-section {
-            border-left: 5px solid;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            background-color: #fafbfc;
-            border-radius: 4px;
-        }
-        .card-section h5 {
-            margin-bottom: 1rem;
-            font-weight: 700;
-            color: #1f2937;
-        }
-        
-        /* Color themes - more vibrant */
-        .section-environment { border-left-color: #16a34a; background-color: #a7f3d0; }
+        /* Card sections - color themes only */
+        .section-environment { border-left: 5px solid #16a34a; background-color: #a7f3d0; }
         .section-environment h5 { color: #15803d; }
         
-        .section-paths { border-left-color: #0369a1; background-color: #cffafe; }
+        .section-paths { border-left: 5px solid #0369a1; background-color: #cffafe; }
         .section-paths h5 { color: #0c4a6e; }
         
-        .section-source-db { border-left-color: #ca8a04; background-color: #fef3c7; }
+        .section-source-db { border-left: 5px solid #ca8a04; background-color: #fef3c7; }
         .section-source-db h5 { color: #92400e; }
         
-        .section-target-db { border-left-color: #ca8a04; background-color: #fef3c7; }
+        .section-target-db { border-left: 5px solid #ca8a04; background-color: #fef3c7; }
         .section-target-db h5 { color: #92400e; }
         
-        .section-sftp { border-left-color: #dc2626; background-color: #fee2e2; }
+        .section-sftp { border-left: 5px solid #dc2626; background-color: #fee2e2; }
         .section-sftp h5 { color: #7f1d1d; }
         
         /* SFTP row spacing */
         .row.sftp-row { margin-top: 2rem; }
-        
-        .section-actions { text-align: center; padding-top: 1rem; }
-        .section-actions .btn { padding: 0.75rem 3rem; font-size: 1.1rem; }
     </style>
 </head>
 <body>
@@ -69,8 +51,8 @@
     </div>
 
     <?php if (isset($env) && is_array($env)): ?>
-      <div class="card-section section-environment">
-        <h5><?= htmlspecialchars($translator->translate('environment_diagnostics')) ?? 'Diagnostika prostředí' ?></h5>
+      <div class="p-3 rounded mb-3 section-environment">
+        <h5 class="mb-3"><?= htmlspecialchars($translator->translate('environment_diagnostics')) ?? 'Diagnostika prostředí' ?></h5>
         <div class="d-flex gap-2 flex-wrap">
           <span class="badge bg-<?= $env['mysqldump'] ? 'success' : 'danger' ?>">mysqldump: <?= htmlspecialchars($translator->translate($env['mysqldump'] ? 'ok' : 'missing')) ?></span>
           <span class="badge bg-<?= $env['zip_ext'] ? 'success' : 'danger' ?>">zip ext: <?= htmlspecialchars($translator->translate($env['zip_ext'] ? 'ok' : 'missing')) ?></span>
@@ -83,8 +65,8 @@
 
     <form id="backupForm" method="post" enctype="multipart/form-data">
       <!-- Paths Section -->
-      <div class="card-section section-paths">
-        <h5><?= htmlspecialchars($translator->translate('paths') ?? 'Cesty') ?></h5>
+      <div class="p-3 rounded mb-3 section-paths">
+        <h5 class="mb-3"><?= htmlspecialchars($translator->translate('paths') ?? 'Cesty') ?></h5>
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label"><?= htmlspecialchars($translator->translate('source_site_path')) ?></label>
@@ -101,8 +83,8 @@
       <!-- Source & Target Database Sections - Side by side -->
       <div class="row g-3">
         <div class="col-md-6">
-          <div class="card-section section-source-db h-100">
-            <h5><?= htmlspecialchars($translator->translate('database') ?? 'Zdrojová databáze') ?></h5>
+          <div class="p-3 rounded h-100 section-source-db">
+            <h5 class="mb-3"><?= htmlspecialchars($translator->translate('database') ?? 'Zdrojová databáze') ?></h5>
             <div class="row g-2">
               <div class="col-md-6">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
@@ -129,8 +111,8 @@
         </div>
 
         <div class="col-md-6">
-          <div class="card-section section-target-db h-100">
-            <h5><?= htmlspecialchars($translator->translate('target_site_db_heading')) ?></h5>
+          <div class="p-3 rounded h-100 section-target-db">
+            <h5 class="mb-3"><?= htmlspecialchars($translator->translate('target_site_db_heading')) ?></h5>
             <div class="row g-2">
               <div class="col-md-6">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('db_host_placeholder')) ?></label>
@@ -161,8 +143,8 @@
       <!-- SFTP Section -->
       <div class="row g-3 sftp-row">
         <div class="col-12">
-          <div class="card-section section-sftp">
-            <h5><?= htmlspecialchars($translator->translate('sftp_section')) ?></h5>
+          <div class="p-3 rounded section-sftp">
+            <h5 class="mb-3"><?= htmlspecialchars($translator->translate('sftp_section')) ?></h5>
             <div class="row g-2">
               <div class="col-md-4">
                 <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
@@ -208,8 +190,8 @@
       </div>
 
       <!-- Action Button - Centered -->
-      <div class="section-actions">
-        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn"><?= htmlspecialchars($translator->translate('run_button')) ?></button>
+      <div class="text-center pt-3">
+        <button type="submit" class="btn btn-primary btn-lg px-5" id="submitBtn"><?= htmlspecialchars($translator->translate('run_button')) ?></button>
       </div>
     </form>
   </div>
