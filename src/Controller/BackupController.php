@@ -126,23 +126,26 @@ class BackupController
             $result = null;
             $env = null;
             $appLog = '';
+            $showResult = false;
             
             if (!empty($_SESSION['backup_result'])) {
                 $stored = $_SESSION['backup_result'];
                 $result = $stored['result'] ?? null;
                 $env = $stored['env'] ?? null;
                 $appLog = $stored['appLog'] ?? '';
-                
-                // Only show stored result, don't keep it for next page load
-                if (!empty($_GET['lang'])) {
-                    // Language changed, keep result for this view
-                } else {
-                    // No language change, clear stored result
-                    unset($_SESSION['backup_result']);
-                }
+                $showResult = true;
             }
 
-            $env = $env ?? $model->environmentChecks();
+            if ($showResult && !empty($_GET['lang'])) {
+                // Language changed on result page - show result with new language
+                include __DIR__ . '/../View/result.php';
+                return;
+            }
+
+            // Normal form page load
+            if (empty($env)) {
+                $env = $model->environmentChecks();
+            }
             include __DIR__ . '/../View/form.php';
         } catch (\Throwable $e) {
             header('HTTP/1.1 500 Internal Server Error');
