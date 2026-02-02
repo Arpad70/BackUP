@@ -115,23 +115,23 @@
             <h5><?= htmlspecialchars($translator->translate('target_site_db_heading')) ?></h5>
             <div class="row g-2">
               <div class="col-md-6">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('db_host_placeholder')) ?></label>
+                <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
                 <input name="target_db_host" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_host_placeholder')) ?>">
               </div>
               <div class="col-md-6">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('db_port_placeholder')) ?></label>
+                <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
                 <input name="target_db_port" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_port_placeholder')) ?>">
               </div>
               <div class="col-md-12">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('db_user_placeholder')) ?></label>
+                <label class="form-label"><?= htmlspecialchars($translator->translate('user')) ?></label>
                 <input name="target_db_user" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_user_placeholder')) ?>">
               </div>
               <div class="col-md-12">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('db_password_placeholder')) ?></label>
+                <label class="form-label"><?= htmlspecialchars($translator->translate('password')) ?></label>
                 <input name="target_db_pass" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_password_placeholder')) ?>">
               </div>
               <div class="col-md-12">
-                <label class="form-label"><?= htmlspecialchars($translator->translate('db_name_placeholder')) ?></label>
+                <label class="form-label"><?= htmlspecialchars($translator->translate('database_name')) ?></label>
                 <input name="target_db_name" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_name_placeholder')) ?>">
               </div>
             </div>
