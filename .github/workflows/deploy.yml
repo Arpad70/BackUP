@@ -1,8 +1,9 @@
+---
 name: Deploy to backup.eshopion.sk
 
-on:
+"on":
   push:
-    tags: [ 'v*' ]
+    tags: ['v*']
   workflow_dispatch: {}
 
 jobs:
@@ -30,17 +31,25 @@ jobs:
       - name: Ensure remote host known
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" \
+            "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Debug SSH connection (verbose, no transfer)
         run: |
           echo "--- SSH debug: attempting non-interactive connection ---"
-          ssh -o BatchMode=yes -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}"@"${{ secrets.DEPLOY_HOST }}" -vvv 'echo connected && whoami && uname -a' || (echo "SSH debug failed"; exit 1)
+          ssh -o BatchMode=yes -p "${{ secrets.DEPLOY_PORT }}" \
+            "${{ secrets.DEPLOY_USER }}"@"${{ secrets.DEPLOY_HOST }}" \
+            -vvv 'echo connected && whoami && uname -a' || \
+            (echo "SSH debug failed"; exit 1)
 
       - name: Rsync files to server
         run: |
           RSYNC_EXCLUDE='--exclude .git --exclude tests --exclude .github'
-          rsync -avz -e "ssh -p ${{ secrets.DEPLOY_PORT }}" $RSYNC_EXCLUDE ./ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}
+          USER_HOST="${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}"
+          DEST="${USER_HOST}:${{ secrets.DEPLOY_PATH }}"
+          rsync -avz -e "ssh -p ${{ secrets.DEPLOY_PORT }}" \
+            $RSYNC_EXCLUDE ./ \
+            "$DEST"
 
       - name: Run remote post-deploy tasks
         uses: appleboy/ssh-action@v0.1.7
@@ -53,14 +62,21 @@ jobs:
             set -e
             # ensure permissions
             # some hosts don't have a same-named group; change to set owner only
-            chown -R "${{ secrets.DEPLOY_USER }}" "${{ secrets.DEPLOY_PATH }}"
-            find "${{ secrets.DEPLOY_PATH }}" -type d -exec chmod 755 {} +
-            find "${{ secrets.DEPLOY_PATH }}" -type f -exec chmod 644 {} +
+            DEPLOY_PATH_VAR="${{ secrets.DEPLOY_PATH }}"
+            chown -R "${{ secrets.DEPLOY_USER }}" \
+              "$DEPLOY_PATH_VAR"
+            find "$DEPLOY_PATH_VAR" -type d -print0 | xargs -0 chmod 755
+            find "$DEPLOY_PATH_VAR" -type f -print0 | xargs -0 chmod 644
             # optional: create simple index listing (if no web index exists)
             if [ ! -f "${{ secrets.DEPLOY_PATH }}/index.html" ]; then
-              echo "<html><body><h1>Backups</h1><pre>" > /tmp/listing.html
-              ls -la "${{ secrets.DEPLOY_PATH }}" >> /tmp/listing.html
-              echo "</pre></body></html>" >> /tmp/listing.html
-              mv /tmp/listing.html "${{ secrets.DEPLOY_PATH }}/index.html"
-              chmod 644 "${{ secrets.DEPLOY_PATH }}/index.html"
+              printf '%s\n' '<html>' > /tmp/listing.html
+              printf '%s\n' '<body>' >> /tmp/listing.html
+              printf '%s\n' '<h1>Backups</h1>' >> /tmp/listing.html
+              printf '%s\n' '<pre>' >> /tmp/listing.html
+              ls -la "$DEPLOY_PATH_VAR" >> /tmp/listing.html
+              printf '%s\n' '</pre>' >> /tmp/listing.html
+              printf '%s\n' '</body>' >> /tmp/listing.html
+              printf '%s\n' '</html>' >> /tmp/listing.html
+              mv /tmp/listing.html "$DEPLOY_PATH_VAR/index.html"
+              chmod 644 "$DEPLOY_PATH_VAR/index.html"
             fi

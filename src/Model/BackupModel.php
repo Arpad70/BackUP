@@ -12,20 +12,27 @@ class BackupModel
     private ?string $progressFile = null;
     private DatabaseDumper $dumper;
     private UploaderInterface $uploader;
+    private ?\BackupApp\Service\Translator $translator = null;
 
-    public function __construct(?DatabaseDumper $dumper = null, ?UploaderInterface $uploader = null)
+    public function __construct(?DatabaseDumper $dumper = null, ?UploaderInterface $uploader = null, ?\BackupApp\Service\Translator $translator = null)
     {
         $this->tmpDir = sys_get_temp_dir();
         $this->dumper = $dumper ?? new DatabaseDumper();
         $this->uploader = $uploader ?? new SftpUploader();
+        $this->translator = $translator;
     }
 
     private function setProgress(int $percent, string $message = '', string $step = ''): void
     {
         if (!$this->progressFile) return;
+        $msg = $message;
+        if ($this->translator !== null && $message !== '') {
+            // allow messages to be translation keys
+            $msg = $this->translator->translate($message);
+        }
         $data = [
             'progress' => min(100, max(0, (int)$percent)),
-            'message' => $message,
+            'message' => $msg,
             'step' => $step,
             'timestamp' => time()
         ];
@@ -45,17 +52,18 @@ class BackupModel
     {
         $response = ['steps' => [], 'errors' => []];
         $this->progressFile = sys_get_temp_dir() . '/backup_progress_' . time() . '.json';
-        $this->setProgress(0, 'Initializing...');
+        $this->setProgress(0, 'initializing');
 
         $env = $this->environmentChecks();
         $response['env'] = $env;
         if (! $env['mysqldump'] || ! $env['zip_ext'] || ! $env['tmp_writable']) {
-            $response['errors'][] = 'Environment incomplete: missing required tools or permissions.';
-            $this->setProgress(0, 'Error: ' . $response['errors'][0]);
+            $msg = $this->translator ? $this->translator->translate('env_incomplete') : 'Environment incomplete: missing required tools or permissions.';
+            $response['errors'][] = $msg;
+            $this->setProgress(0, 'env_incomplete');
             return $response;
         }
 
-        $this->setProgress(10, 'Dumping database...', 'db_dump');
+        $this->setProgress(10, 'dumping_database', 'db_dump');
         $dbFile = $this->tmpDir . '/db_dump_' . time() . '.sql';
         $dbHost = $data['db_host'] ?? null;
         if (!is_string($dbHost) || $dbHost === '') {
@@ -97,30 +105,36 @@ class BackupModel
 
         $response['steps'][] = ['db_dump' => $dbFile, 'ok' => $dbOk, 'message' => $dbMsg];
         if (! $dbOk) {
-            $response['errors'][] = 'Database dump failed';
-            if (!empty($dbMsg)) $response['errors'][] = 'Dump error: ' . $dbMsg;
-            $this->setProgress(50, 'Error: Database dump failed');
+            $dbFailMsg = $this->translator ? $this->translator->translate('db_dump_failed') : 'Database dump failed';
+            $response['errors'][] = $dbFailMsg;
+            if (!empty($dbMsg)) {
+                $prefix = $this->translator ? $this->translator->translate('error_prefix') : 'Error: ';
+                $response['errors'][] = $prefix . $dbMsg;
+            }
+            $this->setProgress(50, 'db_dump_failed');
             return $response;
         }
-        $this->setProgress(35, 'Database dump completed');
+        $this->setProgress(35, 'db_dump_completed');
 
         $sitePath = $data['site_path'] ?? null;
         if (!is_string($sitePath) || $sitePath === '' || ! is_dir($sitePath)) {
-            $response['errors'][] = 'Invalid site path';
-            $this->setProgress(50, 'Error: Invalid site path');
+            $msg = $this->translator ? $this->translator->translate('invalid_site_path') : 'Invalid site path';
+            $response['errors'][] = $msg;
+            $this->setProgress(50, 'invalid_site_path');
             return $response;
         }
 
-        $this->setProgress(40, 'Compressing site files...', 'zip');
+        $this->setProgress(40, 'compressing_site_files', 'zip');
         $zipFile = $this->tmpDir . '/site_backup_' . time() . '.zip';
         $okZip = $this->zipDirectory($sitePath, $zipFile);
         $response['steps'][] = ['site_zip' => $zipFile, 'ok' => $okZip];
         if (! $okZip) {
-            $response['errors'][] = 'Site zip failed';
-            $this->setProgress(50, 'Error: Site compression failed');
+            $msg = $this->translator ? $this->translator->translate('site_compression_failed') : 'Site zip failed';
+            $response['errors'][] = $msg;
+            $this->setProgress(50, 'site_compression_failed');
             return $response;
         }
-        $this->setProgress(65, 'Files compressed');
+        $this->setProgress(65, 'files_compressed');
 
         // Prepare target artifacts: target DB dump and target site zip if possible
         $targetDbFile = null;
@@ -130,7 +144,7 @@ class BackupModel
         // target DB credentials (optional)
         $tDbHost = $data['target_db_host'] ?? null;
         if (is_string($tDbHost) && $tDbHost !== '') {
-            $this->setProgress(50, 'Dumping target database...', 'target_db_dump');
+            $this->setProgress(50, 'dumping_target_database', 'target_db_dump');
             $targetDbFile = $this->tmpDir . '/target_db_dump_' . time() . '.sql';
                 $tDbUser = $data['target_db_user'] ?? '';
                 if (!is_string($tDbUser)) $tDbUser = '';
@@ -152,18 +166,21 @@ class BackupModel
         $targetPath = $data['target_site_path'] ?? null;
         if (is_string($targetPath) && $targetPath !== '') {
             if (!is_dir($targetPath)) {
-                if (!@mkdir($targetPath, 0755, true)) {
-                    $response['errors'][] = 'Failed to create target path: ' . $targetPath;
-                    $this->setProgress(80, 'Error creating target path');
+                    if (!@mkdir($targetPath, 0755, true)) {
+                    $prefix = $this->translator ? $this->translator->translate('error_prefix') : 'Error: ';
+                    $response['errors'][] = $prefix . ($this->translator ? $this->translator->translate('error_creating_target_path') : 'Failed to create target path: ' . $targetPath);
+                    $this->setProgress(80, 'error_creating_target_path');
                     return $response;
                 }
             }
-            $this->setProgress(60, 'Compressing target site files...', 'target_zip');
+            $this->setProgress(60, 'compressing_target_site_files', 'target_zip');
             $targetZipFile = $this->tmpDir . '/target_site_backup_' . time() . '.zip';
             $okTargetZip = $this->zipDirectory($targetPath, $targetZipFile);
             $response['steps'][] = ['target_site_zip' => $targetZipFile, 'ok' => $okTargetZip];
             if (! $okTargetZip) {
-                $response['errors'][] = 'Target site zip failed';
+                $msg = $this->translator ? $this->translator->translate('target_site_zip_failed') : 'Target site zip failed';
+                $response['errors'][] = $msg;
+                $this->setProgress(82, 'target_site_zip_failed');
             }
         }
 
@@ -212,11 +229,13 @@ class BackupModel
                 // copy combined to target backups
                 @copy($combinedLocal, $backupsDir . '/' . $combinedName);
                 $response['steps'][] = ['combined' => $backupsDir . '/' . $combinedName, 'local_copy' => $combinedLocal];
-            } else {
-                $response['errors'][] = 'Failed to create combined archive';
+                } else {
+                $msg = $this->translator ? $this->translator->translate('failed_create_combined_archive') : 'Failed to create combined archive';
+                $response['errors'][] = $msg;
+                $this->setProgress(90, 'failed_create_combined_archive');
             }
 
-            $this->setProgress(100, 'Backup completed (local target)');
+            $this->setProgress(100, 'backup_completed_local');
             return $response;
         }
 
@@ -239,7 +258,7 @@ class BackupModel
         foreach ($artifacts as $a) {
             $path = $a['path'];
             $name = $a['name'];
-            $this->setProgress(70, 'Uploading ' . $name . '...', 'upload');
+            $this->setProgress(70, 'uploading');
             $this->sftpUpload($path, $remoteBackups . '/' . $name, $sftpHost, (int)$sftpPort, $sftpUser, $sftpPass);
         }
 
@@ -257,9 +276,11 @@ class BackupModel
             $zip->close();
             $this->sftpUpload($combinedLocal, $remoteBackups . '/' . $combinedName, $sftpHost, (int)$sftpPort, $sftpUser, $sftpPass);
             $response['steps'][] = ['combined' => $remoteBackups . '/' . $combinedName, 'local_copy' => $combinedLocal];
-            $this->setProgress(100, 'Backup completed (remote target)');
+            $this->setProgress(100, 'backup_completed_remote');
         } else {
-            $response['errors'][] = 'Failed to create combined archive';
+            $msg = $this->translator ? $this->translator->translate('failed_create_combined_archive') : 'Failed to create combined archive';
+            $response['errors'][] = $msg;
+            $this->setProgress(90, 'failed_create_combined_archive');
         }
         return $response;
     }

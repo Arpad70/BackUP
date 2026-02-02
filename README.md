@@ -1,4 +1,4 @@
-# Backup MVC — jednoduchá app
+# Backup MVC — jednoduchá aplikace
 
 Mini aplikace, která provede:
 - databázový dump (mysqldump)
@@ -26,9 +26,9 @@ export BACKUP_PASS='silne-heslo'
 $env:BACKUP_USER = 'backup'; $env:BACKUP_PASS = 'silne-heslo'
 ```
 
-Poznámka: pokud env proměnné nenastavíte, stránka bude chráněna výchozím účtem `backup`/`changeme` — nezapomeňte změnit před nasazením.
+Poznámka: pokud env proměnné nenastavíte, stránka bude chráněna výchozím účtem `backup`/`changeme` — nezapomeňte ho změnit před nasazením.
 
-Spuštění (lokálně pomocí PHP vestavěného serveru):
+Spuštění (lokálně pomocí vestavěného PHP serveru):
 ```
 cd backup_app/public
 php -S 0.0.0.0:8000
@@ -37,7 +37,7 @@ php -S 0.0.0.0:8000
 
 Bezpečnost: nenechávejte tento nástroj vystavený veřejně bez ochrany; používá hesla v POST datech.
 
-Deployment note (Apache)
+Poznámky k nasazení (Apache)
 - Pokud máte možnost, nastavte `DocumentRoot` serveru na `.../backup_app/public` — je to bezpečnější a přehlednější než přepisovat v root `.htaccess`.
 - Ujistěte se, že Apache má povolené moduly `mod_rewrite` a `mod_headers` a že `AllowOverride` umožňuje `FileInfo`/`Indexes`/`AuthConfig` pro `.htaccess`.
 
@@ -63,7 +63,7 @@ apachectl -M | grep -E "rewrite|headers" || sudo a2enmod rewrite headers
 # Pošlete požadavek na kořen (nahraďte host testovací adresou nebo použijte lokální host)
 curl -sI http://localhost/ | head -n 20
 # Očekávejte 200 a v těle stránky /public/index.php se zobrazí titul nebo text formuláře
-curl -s http://localhost/ | grep -i "Backup — DB dump" || curl -s http://localhost/public/ | head
+curl -s http://localhost/ | grep -i "Záloha — databázový dump" || curl -s http://localhost/public/ | head
 ```
 
 3) Ověření blokování citlivých souborů a dotfiles

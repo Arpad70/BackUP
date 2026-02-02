@@ -8,6 +8,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use BackupApp\Model\BackupModel;
 use BackupApp\Service\SftpKeyUploader;
+use BackupApp\Service\Translator;
 
 function env(string $name, ?string $default = null): ?string {
     $v = getenv($name);
@@ -35,18 +36,23 @@ if (!isset($config['sftp_user'])) $config['sftp_user'] = env('SFTP_USER');
 if (!isset($config['sftp_remote'])) $config['sftp_remote'] = env('SFTP_REMOTE', '/backups');
 
 // If SFTP_PRIVATE_KEY env is present, use key uploader
+//$uploader may be null
 $uploader = null;
 if ($key = env('SFTP_PRIVATE_KEY')) {
     $pass = env('SFTP_KEY_PASSPHRASE');
     $uploader = new SftpKeyUploader($key, $pass ?: null);
 }
 
-$model = new BackupModel(null, $uploader);
+// create translator for CLI output (LANG env or fallback to cs)
+$lang = env('LANG', env('LC_ALL', 'cs'));
+$translator = new Translator($lang, ['fallback' => 'cs', 'path' => __DIR__ . '/../lang']);
 
-echo "Running backup...\n";
+$model = new BackupModel(null, $uploader, $translator);
+
+echo $translator->translate('initializing') . "\n";
 $result = $model->runBackup($config);
 
-echo "Result:\n";
+echo $translator->translate('result_heading') . "\n";
 print_r($result);
 
 if (is_array($result) && isset($result['ok']) && $result['ok'] === true) {

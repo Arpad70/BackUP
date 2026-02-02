@@ -16,4 +16,75 @@ return [
     'private_key_notice' => 'Nahratý kľúč sa prečíta a ihneď odstráni; nebude uložený.',
     'run_button' => 'Spustiť zálohu / migráciu',
     'target_db_section_note' => 'Ak sú tieto údaje zadané, do finálnej zálohy bude zahrnutý dump cieľovej DB.'
+    ,
+    // result / UI
+    'result_title' => 'Výsledok zálohy',
+    'errors' => 'Chyby',
+    'warnings' => 'Upozornenia',
+    'environment_diagnostics' => 'Diagnostika prostredia',
+    'application_log' => 'Protokol aplikácie',
+    'steps' => 'Kroky',
+    'back' => 'Späť',
+    'found' => 'nájdené',
+    'missing' => 'chýba',
+    'available' => 'dostupné',
+    'not_available' => 'nedostupné',
+    'yes' => 'áno',
+    'no' => 'nie',
+    'ok' => 'OK',
+    'failed' => 'zlyhalo',
+
+    // form texts and placeholders
+    'target_site_db_heading' => 'Databáza cieľového webu (nepovinné)',
+    'files_will_be_copied' => 'Ak je zadaná, súbory budú skopírované lokálne zo zdroja do cieľa (SFTP nie je potrebné).',
+    'db_host_placeholder' => 'DB host',
+    'db_port_placeholder' => '3306',
+    'db_user_placeholder' => 'DB používateľ',
+    'db_name_placeholder' => 'Názov DB',
+    'db_password_placeholder' => 'DB heslo',
+    'remote_dir' => 'Vzdialený adresár',
+
+    // WP-config auto-fill statuses
+    'checking_wp_config' => 'Kontrolujem wp-config.php...',
+    'wp_config_loaded' => 'Nastavenia DB načítané z wp-config.php',
+    'wp_config_error_prefix' => 'wp-config.php: ',
+    'unexpected_response' => 'Neočakávaná odpoveď zo servera',
+    'error_prefix' => 'Chyba: ',
+    'provide_site_path' => 'Zadajte cestu k webu pre automatické vyplnenie nastavení DB',
+    'enter_absolute_path' => 'Zadajte prosím absolútnu cestu začínajúcu /'
+    ,
+    'private_key_used_warning' => 'Súkromný kľúč bol použitý pre toto spustenie a nebol uložený na serveri.',
+
+    // progress / messages
+    'initializing' => 'Inicializujem...',
+    'env_incomplete' => 'Prostredie neúplné: chýbajú potrebné nástroje alebo práva.',
+    'dumping_database' => 'Vytváram dump databázy...',
+    'db_dump_failed' => 'Dump databázy zlyhal',
+    'db_dump_completed' => 'Dump databázy dokončený',
+    'invalid_site_path' => 'Neplatná cesta k webu',
+    'compressing_site_files' => 'Komprimujem súbory webu...',
+    'files_compressed' => 'Súbory zkomprimované',
+    'dumping_target_database' => 'Vytváram dump cieľovej databázy...',
+    'compressing_target_site_files' => 'Komprimujem súbory cieľového webu...',
+    'error_creating_target_path' => 'Chyba pri vytváraní cieľovej cesty',
+    'target_site_zip_failed' => 'Vytvorenie zipu cieľového webu zlyhalo',
+    'site_compression_failed' => 'Kompresia webu zlyhala',
+    'failed_create_combined_archive' => 'Zlyhalo vytvorenie zjednoteného archívu',
+    'uploading' => 'Nahrávam...',
+    'backup_completed_local' => 'Záloha dokončená (lokálny cieľ)',
+    'backup_completed_remote' => 'Záloha dokončená (vzdialený cieľ)'
+    ,
+    'uploaded_key_too_large' => 'Nahratý kľúč je príliš veľký (max 16 KB).',
+    'pasted_key_too_large' => 'Vložený súkromný kľúč je príliš veľký (max 16 KB).',
+    'private_key_invalid_header' => 'Obsah súkromného kľúča neobsahuje rozpoznateľný PEM/OpenSSH hlavičkový reťazec.'
+    ,
+    'invalid_progress_file' => 'Neplatný súbor priebehu',
+    'progress_file_not_found' => 'Súbor priebehu nenájdený',
+    'error_heading' => 'Chyba',
+    'result_heading' => 'Výsledok:'
+    ,
+    'example_site_path_placeholder' => '/var/www/html/example.com',
+    'example_target_site_placeholder' => '/var/www/html/example-target.com',
+    'example_sftp_host' => 'sftp.example.com',
+    'key_passphrase_optional' => 'Passphrase kľúča (nepovinné)'
 ];

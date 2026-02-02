@@ -18,8 +18,12 @@ class BackupController
         ini_set('error_log', $logDir . '/backup_app.log');
 
         try {
-            $model = new BackupModel();
             $db_config = Config::loadWordPressConfig();
+
+            // determine language and create translator early so we can use it during POST handling
+            $lang = $_GET['lang'] ?? $_COOKIE['lang'] ?? 'cs';
+            $translator = new \BackupApp\Service\Translator($lang, ['fallback' => 'cs', 'path' => dirname(__DIR__,2) . '/lang']);
+            $model = new BackupModel(null, null, $translator);
 
             $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
             if ($method === 'POST') {
@@ -34,7 +38,7 @@ class BackupController
                     $tmp = $_FILES['sftp_key_file']['tmp_name'];
                     $size = intval($_FILES['sftp_key_file']['size'] ?? 0);
                     if ($size > $keyMaxBytes) {
-                        $keyErrors[] = 'Uploaded key file is too large (max 16 KB).';
+                        $keyErrors[] = $translator->translate('uploaded_key_too_large');
                     } elseif (is_readable($tmp)) {
                         $privateKey = @file_get_contents($tmp) ?: null;
                     }
@@ -47,7 +51,7 @@ class BackupController
                     if (!empty($data['sftp_key'])) {
                         $pk = $data['sftp_key'];
                         if (strlen($pk) > $keyMaxBytes) {
-                            $keyErrors[] = 'Pasted private key is too large (max 16 KB).';
+                            $keyErrors[] = $translator->translate('pasted_key_too_large');
                         } else {
                             $privateKey = $pk;
                         }
@@ -68,7 +72,7 @@ class BackupController
                         if (strpos($privateKey, $m) !== false) { $valid = true; break; }
                     }
                     if (! $valid) {
-                        $keyErrors[] = 'Private key content does not contain a recognisable PEM/OpenSSH header.';
+                        $keyErrors[] = $translator->translate('private_key_invalid_header');
                         // don't use this key
                         $privateKey = null;
                     }
@@ -84,9 +88,9 @@ class BackupController
                     $uploader = new SftpKeyUploader($privateKey, $passphrase ?: null);
                     // avoid keeping the key in $data or in logs
                     unset($data['sftp_key'], $data['sftp_key_passphrase']);
-                    $model = new BackupModel(null, $uploader);
+                    $model = new BackupModel(null, $uploader, $translator);
                     // inform user that key was used but not stored
-                    $result['warnings'][] = 'Private key was used for this run and was not stored on the server.';
+                    $result['warnings'][] = $translator->translate('private_key_used_warning');
                 }
 
                 $result = $model->runBackup($data);
@@ -101,21 +105,17 @@ class BackupController
                     $appLog = implode("\n", $tail);
                 }
 
-                // pass translator to result view
-                $lang = $_GET['lang'] ?? $_COOKIE['lang'] ?? 'cs';
-                $translator = new \BackupApp\Service\Translator($lang, ['fallback' => 'cs', 'path' => dirname(__DIR__,2) . '/lang']);
+                // pass translator to result view (translator was already created earlier)
                 include __DIR__ . '/../View/result.php';
                 return;
             }
 
             $env = $model->environmentChecks();
-            // setup translator
-            $lang = $_GET['lang'] ?? $_COOKIE['lang'] ?? 'cs';
-            $translator = new \BackupApp\Service\Translator($lang, ['fallback' => 'cs', 'path' => dirname(__DIR__,2) . '/lang']);
             include __DIR__ . '/../View/form.php';
         } catch (\Throwable $e) {
             header('HTTP/1.1 500 Internal Server Error');
-            echo '<h1>Error</h1>';
+            $t = $translator ?? new \BackupApp\Service\Translator('cs', ['fallback' => 'cs', 'path' => dirname(__DIR__,2) . '/lang']);
+            echo '<h1>' . htmlspecialchars($t->translate('error_heading')) . '</h1>';
             echo '<p>' . htmlspecialchars($e->getMessage()) . '</p>';
             echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
             error_log('backup_app error: ' . $e->getMessage());

@@ -29,12 +29,12 @@
 
     <?php if (isset($env) && is_array($env)): ?>
       <div class="mb-3">
-        <div class="d-flex gap-3 flex-wrap">
-          <div class="badge bg-<?= $env['mysqldump'] ? 'success' : 'danger' ?>">mysqldump: <?= $env['mysqldump'] ? 'OK' : 'missing' ?></div>
-          <div class="badge bg-<?= $env['zip_ext'] ? 'success' : 'danger' ?>">zip ext: <?= $env['zip_ext'] ? 'OK' : 'missing' ?></div>
-          <div class="badge bg-<?= $env['phpseclib'] ? 'success' : 'warning' ?>">phpseclib: <?= $env['phpseclib'] ? 'available' : 'not installed' ?></div>
-          <div class="badge bg-<?= $env['ssh2_ext'] ? 'success' : 'warning' ?>">ssh2: <?= $env['ssh2_ext'] ? 'available' : 'not available' ?></div>
-          <div class="badge bg-<?= $env['tmp_writable'] ? 'success' : 'danger' ?>">tmp writable: <?= $env['tmp_writable'] ? 'yes' : 'no' ?></div>
+          <div class="d-flex gap-3 flex-wrap">
+          <div class="badge bg-<?= $env['mysqldump'] ? 'success' : 'danger' ?>">mysqldump: <?= htmlspecialchars($translator->translate($env['mysqldump'] ? 'ok' : 'missing')) ?></div>
+          <div class="badge bg-<?= $env['zip_ext'] ? 'success' : 'danger' ?>">zip ext: <?= htmlspecialchars($translator->translate($env['zip_ext'] ? 'ok' : 'missing')) ?></div>
+          <div class="badge bg-<?= $env['phpseclib'] ? 'success' : 'warning' ?>">phpseclib: <?= htmlspecialchars($translator->translate($env['phpseclib'] ? 'available' : 'not_available')) ?></div>
+          <div class="badge bg-<?= $env['ssh2_ext'] ? 'success' : 'warning' ?>">ssh2: <?= htmlspecialchars($translator->translate($env['ssh2_ext'] ? 'available' : 'not_available')) ?></div>
+          <div class="badge bg-<?= $env['tmp_writable'] ? 'success' : 'danger' ?>">tmp writable: <?= htmlspecialchars($translator->translate($env['tmp_writable'] ? 'yes' : 'no')) ?></div>
         </div>
       </div>
     <?php endif; ?>
@@ -43,21 +43,21 @@
       <div class="row g-3">
         <div class="col-md-6">
           <label class="form-label"><?= htmlspecialchars($translator->translate('source_site_path')) ?></label>
-          <input id="site_path" name="site_path" type="text" class="form-control" placeholder="/var/www/html/example.com" value="<?= htmlspecialchars($db_config['site_path'] ?? '') ?>">
+          <input id="site_path" name="site_path" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_site_path_placeholder')) ?>" value="<?= htmlspecialchars($db_config['site_path'] ?? '') ?>">
         </div>
-        <div class="col-md-6">
+          <div class="col-md-6">
           <label class="form-label"><?= htmlspecialchars($translator->translate('target_site_path')) ?></label>
-          <input id="target_site_path" name="target_site_path" type="text" class="form-control" placeholder="/var/www/html/example-target.com">
-          <div class="form-text">If provided, files will be copied locally from source to target (no SFTP needed).</div>
+          <input id="target_site_path" name="target_site_path" type="text" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_target_site_placeholder')) ?>">
+          <div class="form-text"><?= htmlspecialchars($translator->translate('files_will_be_copied')) ?></div>
         </div>
         <div class="col-12">
-          <h5 class="mt-3">Target site database (optional)</h5>
+          <h5 class="mt-3"><?= htmlspecialchars($translator->translate('target_site_db_heading')) ?></h5>
           <div class="row g-2">
-            <div class="col-md-3"><input name="target_db_host" class="form-control" placeholder="DB host"></div>
-            <div class="col-md-1"><input name="target_db_port" class="form-control" placeholder="3306"></div>
-            <div class="col-md-3"><input name="target_db_user" class="form-control" placeholder="DB user"></div>
-            <div class="col-md-3"><input name="target_db_name" class="form-control" placeholder="DB name"></div>
-            <div class="col-md-2"><input name="target_db_pass" type="password" class="form-control" placeholder="DB password"></div>
+            <div class="col-md-3"><input name="target_db_host" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_host_placeholder')) ?>"></div>
+            <div class="col-md-1"><input name="target_db_port" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_port_placeholder')) ?>"></div>
+            <div class="col-md-3"><input name="target_db_user" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_user_placeholder')) ?>"></div>
+            <div class="col-md-3"><input name="target_db_name" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_name_placeholder')) ?>"></div>
+            <div class="col-md-2"><input name="target_db_pass" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('db_password_placeholder')) ?>"></div>
           </div>
           <div class="form-text"><?= htmlspecialchars($translator->translate('target_db_section_note')) ?></div>
         </div>
@@ -93,7 +93,7 @@
           <div class="row g-2">
             <div class="col-md-4">
               <label class="form-label"><?= htmlspecialchars($translator->translate('host')) ?></label>
-              <input name="sftp_host" class="form-control" placeholder="sftp.example.com">
+              <input name="sftp_host" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('example_sftp_host')) ?>">
             </div>
             <div class="col-md-2">
               <label class="form-label"><?= htmlspecialchars($translator->translate('port')) ?></label>
@@ -104,7 +104,7 @@
               <input name="sftp_user" class="form-control" placeholder="user">
             </div>
             <div class="col-md-3">
-              <label class="form-label">Remote dir</label>
+              <label class="form-label"><?= htmlspecialchars($translator->translate('remote_dir')) ?></label>
               <input name="sftp_remote" class="form-control" placeholder="/backups" value="/backups">
             </div>
           </div>
@@ -125,9 +125,9 @@
           </div>
 
           <div id="sftp-key-fields" class="mt-2" style="display:none;">
-            <textarea name="sftp_key" rows="6" class="form-control" placeholder="Paste private key here"></textarea>
+            <textarea name="sftp_key" rows="6" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('sftp_auth_key')) ?>"></textarea>
             <div class="mt-2"><input name="sftp_key_file" type="file" class="form-control" accept=".pem,.key,text/plain"></div>
-            <div class="mt-2"><input name="sftp_key_passphrase" type="password" class="form-control" placeholder="Key passphrase (optional)"></div>
+            <div class="mt-2"><input name="sftp_key_passphrase" type="password" class="form-control" placeholder="<?= htmlspecialchars($translator->translate('key_passphrase_optional')) ?>"></div>
             <div class="form-text mt-1"><?= htmlspecialchars($translator->translate('private_key_notice')) ?></div>
           </div>
         </div>
@@ -141,7 +141,20 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<?php
+// Localized strings for JS
+ $i18n = [
+   'checking_wp_config' => $translator->translate('checking_wp_config'),
+   'wp_config_loaded' => $translator->translate('wp_config_loaded'),
+   'wp_config_error_prefix' => $translator->translate('wp_config_error_prefix'),
+   'unexpected_response' => $translator->translate('unexpected_response'),
+   'error_prefix' => $translator->translate('error_prefix'),
+   'provide_site_path' => $translator->translate('provide_site_path'),
+   'enter_absolute_path' => $translator->translate('enter_absolute_path')
+ ];
+?>
 <script>
+const I18N = <?= json_encode($i18n, JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_HEX_AMP) ?>;
 // Toggle SFTP auth fields
 document.querySelectorAll('input[name="sftp_auth"]').forEach(function(r){
     r.addEventListener('change', function(){
@@ -174,7 +187,7 @@ if (targetInput) {
     let timer = null;
     function setStatus(text, color) { statusEl.textContent = text; statusEl.style.color = color || 'gray'; }
     function fetchWpConfig(path) {
-        setStatus('Checking wp-config.php...', 'gray');
+      setStatus(I18N.checking_wp_config, 'gray');
         const formData = new FormData();
         formData.append('site_path', path);
         fetch('fetch-wp-config.php', { method: 'POST', body: formData })
@@ -183,16 +196,16 @@ if (targetInput) {
                 if (data && data.DB_NAME !== undefined) {
                     const map = {'DB_HOST': 'db_host','DB_USER': 'db_user','DB_PASSWORD': 'db_pass','DB_NAME': 'db_name'};
                     Object.keys(map).forEach(k => { if (data[k]) { const el = document.querySelector('[name="' + map[k] + '"]'); if (el) el.value = data[k]; } });
-                    setStatus('DB settings loaded from wp-config.php', 'green');
+                    setStatus(I18N.wp_config_loaded, 'green');
                 } else if (data && data.error) {
-                    setStatus('wp-config.php: ' + data.error, 'red');
+                    setStatus(I18N.wp_config_error_prefix + data.error, 'red');
                 } else {
-                    setStatus('Unexpected response from server', 'red');
+                    setStatus(I18N.unexpected_response, 'red');
                 }
-            }).catch(err => setStatus('Error: ' + err.message, 'red'));
+            }).catch(err => setStatus(I18N.error_prefix + err.message, 'red'));
     }
     if (!input) return;
-    input.addEventListener('input', function(){ clearTimeout(timer); timer = setTimeout(()=>{ const val = input.value.trim(); if (!val) { setStatus('Provide site path to auto-fill DB settings'); return; } if (val[0] !== '/') { setStatus('Please enter an absolute path starting with /', 'red'); return; } fetchWpConfig(val); }, 600); });
+    input.addEventListener('input', function(){ clearTimeout(timer); timer = setTimeout(()=>{ const val = input.value.trim(); if (!val) { setStatus(I18N.provide_site_path); return; } if (val[0] !== '/') { setStatus(I18N.enter_absolute_path, 'red'); return; } fetchWpConfig(val); }, 600); });
 })();
 </script>
 </body>

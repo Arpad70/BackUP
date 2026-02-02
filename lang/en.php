@@ -16,4 +16,75 @@ return [
     'private_key_notice' => 'Uploaded key is read and removed immediately; it will not be stored.',
     'run_button' => 'Run backup / migrate',
     'target_db_section_note' => 'If these are provided, a dump of the target DB will be included in the final backup.'
+    ,
+    // result / UI
+    'result_title' => 'Backup result',
+    'errors' => 'Errors',
+    'warnings' => 'Warnings',
+    'environment_diagnostics' => 'Environment diagnostics',
+    'application_log' => 'Application log',
+    'steps' => 'Steps',
+    'back' => 'Back',
+    'found' => 'found',
+    'missing' => 'missing',
+    'available' => 'available',
+    'not_available' => 'not available',
+    'yes' => 'yes',
+    'no' => 'no',
+    'ok' => 'OK',
+    'failed' => 'failed',
+
+    // form texts and placeholders
+    'target_site_db_heading' => 'Target site database (optional)',
+    'files_will_be_copied' => 'If provided, files will be copied locally from source to target (no SFTP needed).',
+    'db_host_placeholder' => 'DB host',
+    'db_port_placeholder' => '3306',
+    'db_user_placeholder' => 'DB user',
+    'db_name_placeholder' => 'DB name',
+    'db_password_placeholder' => 'DB password',
+    'remote_dir' => 'Remote dir',
+
+    // WP-config auto-fill statuses
+    'checking_wp_config' => 'Checking wp-config.php...',
+    'wp_config_loaded' => 'DB settings loaded from wp-config.php',
+    'wp_config_error_prefix' => 'wp-config.php: ',
+    'unexpected_response' => 'Unexpected response from server',
+    'error_prefix' => 'Error: ',
+    'provide_site_path' => 'Provide site path to auto-fill DB settings',
+    'enter_absolute_path' => 'Please enter an absolute path starting with /'
+    ,
+    'private_key_used_warning' => 'Private key was used for this run and was not stored on the server.',
+
+    // progress / messages
+    'initializing' => 'Initializing...',
+    'env_incomplete' => 'Environment incomplete: missing required tools or permissions.',
+    'dumping_database' => 'Dumping database...',
+    'db_dump_failed' => 'Database dump failed',
+    'db_dump_completed' => 'Database dump completed',
+    'invalid_site_path' => 'Invalid site path',
+    'compressing_site_files' => 'Compressing site files...',
+    'files_compressed' => 'Files compressed',
+    'dumping_target_database' => 'Dumping target database...',
+    'compressing_target_site_files' => 'Compressing target site files...',
+    'error_creating_target_path' => 'Error creating target path',
+    'target_site_zip_failed' => 'Target site zip failed',
+    'site_compression_failed' => 'Site compression failed',
+    'failed_create_combined_archive' => 'Failed to create combined archive',
+    'uploading' => 'Uploading...',
+    'backup_completed_local' => 'Backup completed (local target)',
+    'backup_completed_remote' => 'Backup completed (remote target)'
+    ,
+    'uploaded_key_too_large' => 'Uploaded key file is too large (max 16 KB).',
+    'pasted_key_too_large' => 'Pasted private key is too large (max 16 KB).',
+    'private_key_invalid_header' => 'Private key content does not contain a recognisable PEM/OpenSSH header.'
+    ,
+    'invalid_progress_file' => 'Invalid progress file',
+    'progress_file_not_found' => 'Progress file not found',
+    'error_heading' => 'Error',
+    'result_heading' => 'Result:'
+    ,
+    'example_site_path_placeholder' => '/var/www/html/example.com',
+    'example_target_site_placeholder' => '/var/www/html/example-target.com',
+    'example_sftp_host' => 'sftp.example.com',
+    'key_passphrase_optional' => 'Key passphrase (optional)'
 ];

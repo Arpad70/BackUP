@@ -12,12 +12,12 @@ if (!isset($appLog)) {
 ?>
 <!doctype html>
 <html>
-<head><meta charset="utf-8"><title>Backup result</title></head>
+<head><meta charset="utf-8"><title><?= htmlspecialchars($translator->translate('result_title')) ?></title></head>
 <body>
 <div class="container py-4">
-    <h1 class="mb-3">Backup result</h1>
+    <h1 class="mb-3"><?= htmlspecialchars($translator->translate('result_title')) ?></h1>
 <?php if (!empty($result['errors'])): ?>
-    <div style="color:red"><strong>Errors:</strong>
+    <div style="color:red"><strong><?= htmlspecialchars($translator->translate('errors')) ?>:</strong>
         <ul><?php foreach($result['errors'] as $e) echo '<li>'.htmlspecialchars($e).'</li>'; ?></ul>
     </div>
 <?php endif; ?>
@@ -28,16 +28,16 @@ if (!isset($appLog)) {
     <script>setTimeout(()=>{const t=document.getElementById('toast'); if(t) t.style.display='none'},8000);</script>
 <?php endif; ?>
 <?php if (!empty($env)): ?>
-    <h2>Environment diagnostics</h2>
+    <h2><?= htmlspecialchars($translator->translate('environment_diagnostics')) ?></h2>
     <ul>
-        <li>mysqldump: <?php echo $env['mysqldump'] ? 'found' : 'missing'; ?></li>
-        <li>PHP Zip: <?php echo $env['zip_ext'] ? 'loaded' : 'missing'; ?></li>
-        <li>phpseclib: <?php echo $env['phpseclib'] ? 'available' : 'not installed'; ?></li>
-        <li>ssh2 ext: <?php echo $env['ssh2_ext'] ? 'available' : 'not available'; ?></li>
-        <li>tmp writable: <?php echo $env['tmp_writable'] ? 'yes' : 'no'; ?></li>
+        <li>mysqldump: <?php echo $env['mysqldump'] ? htmlspecialchars($translator->translate('found')) : htmlspecialchars($translator->translate('missing')); ?></li>
+        <li>PHP Zip: <?php echo $env['zip_ext'] ? htmlspecialchars($translator->translate('ok')) : htmlspecialchars($translator->translate('missing')); ?></li>
+        <li>phpseclib: <?php echo $env['phpseclib'] ? htmlspecialchars($translator->translate('available')) : htmlspecialchars($translator->translate('not_available')); ?></li>
+        <li>ssh2 ext: <?php echo $env['ssh2_ext'] ? htmlspecialchars($translator->translate('available')) : htmlspecialchars($translator->translate('not_available')); ?></li>
+        <li>tmp writable: <?php echo $env['tmp_writable'] ? htmlspecialchars($translator->translate('yes')) : htmlspecialchars($translator->translate('no')); ?></li>
     </ul>
 <?php endif; ?>
-<h2>Steps</h2>
+<h2><?= htmlspecialchars($translator->translate('steps')) ?></h2>
 <ul>
     <?php foreach($result['steps'] as $s): ?>
         <li>
@@ -45,13 +45,13 @@ if (!isset($appLog)) {
             // Each step is an associative array; render keys and messages nicely
             foreach ($s as $key => $val) {
                 if (is_array($val)) {
-                    $ok = !empty($val['ok']) ? 'ok' : 'failed';
+                    $ok = !empty($val['ok']) ? htmlspecialchars($translator->translate('ok')) : htmlspecialchars($translator->translate('failed'));
                     $msg = !empty($val['message']) ? ' — ' . htmlspecialchars($val['message']) : '';
-                    echo '<strong>' . htmlspecialchars($key) . '</strong>: ' . htmlspecialchars($ok) . $msg;
+                    echo '<strong>' . htmlspecialchars($key) . '</strong>: ' . $ok . $msg;
                 } else {
                     // simple value (path or boolean)
                     if (is_bool($val)) {
-                        echo '<strong>' . htmlspecialchars($key) . '</strong>: ' . ($val ? 'ok' : 'failed');
+                        echo '<strong>' . htmlspecialchars($key) . '</strong>: ' . ($val ? htmlspecialchars($translator->translate('ok')) : htmlspecialchars($translator->translate('failed')));
                     } else {
                         echo '<strong>' . htmlspecialchars($key) . '</strong>: ' . htmlspecialchars($val);
                     }
@@ -62,9 +62,9 @@ if (!isset($appLog)) {
     <?php endforeach; ?>
 </ul>
 <?php if (!empty($appLog)): ?>
-    <h2>Application log</h2>
+    <h2><?= htmlspecialchars($translator->translate('application_log')) ?></h2>
     <pre style="background:#f8f8f8;padding:10px;border:1px solid #ddd;white-space:pre-wrap;"><?php echo htmlspecialchars($appLog); ?></pre>
 <?php endif; ?>
-<p><a href="./">Back</a></p>
+<p><a href="./"><?= htmlspecialchars($translator->translate('back')) ?></a></p>
 </body>
 </html>
