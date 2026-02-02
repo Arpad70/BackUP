@@ -32,6 +32,11 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
 
+      - name: Debug SSH connection (verbose, no transfer)
+        run: |
+          echo "--- SSH debug: attempting non-interactive connection ---"
+          ssh -o BatchMode=yes -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_USER }}"@"${{ secrets.DEPLOY_HOST }}" -vvv 'echo connected && whoami && uname -a' || (echo "SSH debug failed"; exit 1)
+
       - name: Rsync files to server
         run: |
           RSYNC_EXCLUDE='--exclude .git --exclude tests --exclude .github'
