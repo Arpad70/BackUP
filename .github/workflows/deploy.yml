@@ -1,4 +1,4 @@
-name: Deploy to backup.eshopion.eu
+name: Deploy to backup.eshopion.sk
 
 on:
   push:
