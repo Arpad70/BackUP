@@ -3,3 +3,4 @@ vendor/
 .idea/
 /.vscode/
 /.env.local.github/deploy_keys/
+.github/deploy_keys/
