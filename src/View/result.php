@@ -20,6 +20,12 @@ if (!isset($appLog)) {
         <ul><?php foreach($result['errors'] as $e) echo '<li>'.htmlspecialchars($e).'</li>'; ?></ul>
     </div>
 <?php endif; ?>
+<?php if (!empty($result['warnings'])): ?>
+    <div id="toast" style="position:fixed;right:20px;top:20px;background:#333;color:#fff;padding:12px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.2);">
+        <?php foreach($result['warnings'] as $w) echo '<div>'.htmlspecialchars($w).'</div>'; ?>
+    </div>
+    <script>setTimeout(()=>{const t=document.getElementById('toast'); if(t) t.style.display='none'},8000);</script>
+<?php endif; ?>
 <?php if (!empty($env)): ?>
     <h2>Environment diagnostics</h2>
     <ul>

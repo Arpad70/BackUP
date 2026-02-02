@@ -54,7 +54,7 @@
     <p id="progressText">Preparing...</p>
 </div>
 
-<form method="post" id="backupForm">
+<form method="post" id="backupForm" enctype="multipart/form-data">
     <h2>Database</h2>
     <label>Host <input name="db_host" type="text" value="<?php echo htmlspecialchars($db_config['db_host'] ?? '127.0.0.1'); ?>"></label>
     <label>Port <input name="db_port" type="text" value="3306"></label>
@@ -70,7 +70,25 @@
     <label>SFTP host <input name="sftp_host" type="text"></label>
     <label>Port <input name="sftp_port" type="text" value="22"></label>
     <label>User <input name="sftp_user" type="text"></label>
-    <label>Password <input name="sftp_pass" type="password"></label>
+
+    <div style="margin-top:8px">
+        <label><input type="radio" name="sftp_auth" value="password" checked> Password authentication</label>
+        <label><input type="radio" name="sftp_auth" value="key"> Key-based authentication (paste private key)</label>
+    </div>
+
+    <div id="sftp-password-fields">
+        <label>Password <input name="sftp_pass" type="password"></label>
+    </div>
+
+    <div id="sftp-key-fields" style="display:none;">
+        <label>Private key (PEM/OPENSSH) — paste contents here
+            <textarea name="sftp_key" rows="8" style="width:100%;font-family:monospace"></textarea>
+        </label>
+        <label>Or upload private key file <input name="sftp_key_file" type="file" accept=".pem,.key,text/plain"></label>
+        <label>Key passphrase (optional) <input name="sftp_key_passphrase" type="password"></label>
+        <div style="font-size:90%;color:#666;margin-top:6px;">Do not store private keys in logs or database. This upload is read-only and the file is removed after processing.</div>
+    </div>
+
     <label>Remote directory <input name="sftp_remote" type="text" value="/backups"></label>
 
     <p><button type="submit" id="submitBtn">Run backup</button></p>
@@ -194,3 +212,14 @@ function startProgressPolling(fileName, progressFill, progressText) {
 </script>
 </body>
 </html>
+
+<script>
+// Toggle SFTP auth fields
+document.querySelectorAll('input[name="sftp_auth"]').forEach(function(r){
+    r.addEventListener('change', function(){
+        var mode = document.querySelector('input[name="sftp_auth"]:checked').value;
+        document.getElementById('sftp-password-fields').style.display = (mode === 'password') ? 'block' : 'none';
+        document.getElementById('sftp-key-fields').style.display = (mode === 'key') ? 'block' : 'none';
+    });
+});
+</script>

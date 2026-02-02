@@ -26,3 +26,27 @@ Poznámka: pokud nemůžete použít `ssh-copy-id`, zkopírujte obsah `*.pub` do
 5) Test: proveďte commit & push do `main`. Workflow se spustí a nasadí.
 
 6) Bezpečnost: zajistěte, že uživatel má omezená práva a že cílový adresář neobsahuje citlivé soubory. Můžeme workflow upravit pro selektivní kopírování pouze `public` nebo jen artefakty.
+
+7) SFTP key-based upload (pro zálohování přímo z aplikace)
+
+- Doporučení: pokud nechcete používat hesla pro vzdálené SFTP nahrávání záloh, použijte SSH klíč.
+- Umístěte soukromý klíč bezpečně na server (např. `/home/www/.ssh/backup_uploader`) s právy `600` a vlastníkem běžícím uživatelem webu.
+- Do `authorized_keys` cílového účtu přidejte odpovídající veřejný klíč.
+- Ve vaší aplikaci můžete použít novou třídu `BackupApp\Service\SftpKeyUploader`, která přijímá obsah privátního klíče (ne heslo). Příklad použití v PHP:
+
+```php
+use BackupApp\Service\SftpKeyUploader;
+use BackupApp\Model\BackupModel;
+
+$privateKey = file_get_contents('/home/www/.ssh/backup_uploader');
+$uploader = new SftpKeyUploader($privateKey, null); // druhý parametr = passphrase pokud je potřeba
+$model = new BackupModel(null, $uploader);
+$result = $model->runBackup($dataArray);
+```
+
+- Alternativa: pokud aplikace běží v CI (GitHub Actions) a chcete, aby CI provádělo nahrání, uložte privátní klíč do GitHub Secret `DEPLOY_KEY` (nebo `SFTP_PRIVATE_KEY`) a použijte ho v runneru.
+
+8) Poznámky k bezpečnosti klíčů
+
+- Nikdy necommitujte soukromý klíč do repozitáře. Vždy používejte `Secrets` v GitHubu nebo soukromé soubory s přístupovými právy 600 na serveru.
+- Pokud je klíč ochranný frází, uložte frázi do separátního secretu (např. `SFTP_KEY_PASSPHRASE`).

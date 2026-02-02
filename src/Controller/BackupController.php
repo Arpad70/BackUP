@@ -4,6 +4,7 @@ namespace BackupApp\Controller;
 
 use BackupApp\Model\BackupModel;
 use BackupApp\Config;
+use BackupApp\Service\SftpKeyUploader;
 
 class BackupController
 {
@@ -23,6 +24,71 @@ class BackupController
             $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
             if ($method === 'POST') {
                 $data = array_map('trim', $_POST);
+
+                // Handle uploaded private key file safely (read into memory, then remove)
+                $privateKey = null;
+                $keyMaxBytes = 16 * 1024; // 16 KB limit for private key
+                $keyErrors = [];
+
+                if (!empty($_FILES['sftp_key_file']) && is_uploaded_file($_FILES['sftp_key_file']['tmp_name'] ?? '')) {
+                    $tmp = $_FILES['sftp_key_file']['tmp_name'];
+                    $size = intval($_FILES['sftp_key_file']['size'] ?? 0);
+                    if ($size > $keyMaxBytes) {
+                        $keyErrors[] = 'Uploaded key file is too large (max 16 KB).';
+                    } elseif (is_readable($tmp)) {
+                        $privateKey = @file_get_contents($tmp) ?: null;
+                    }
+                    // remove uploaded file immediately
+                    @unlink($tmp);
+                }
+
+                // if POST contains a pasted private key, prefer it over file
+                if (!empty($data['sftp_auth']) && $data['sftp_auth'] === 'key') {
+                    if (!empty($data['sftp_key'])) {
+                        $pk = $data['sftp_key'];
+                        if (strlen($pk) > $keyMaxBytes) {
+                            $keyErrors[] = 'Pasted private key is too large (max 16 KB).';
+                        } else {
+                            $privateKey = $pk;
+                        }
+                    }
+                }
+
+                // Validate private key contents: must contain PEM or OpenSSH marker
+                if ($privateKey !== null) {
+                    $valid = false;
+                    $markers = [
+                        '-----BEGIN OPENSSH PRIVATE KEY-----',
+                        '-----BEGIN RSA PRIVATE KEY-----',
+                        '-----BEGIN DSA PRIVATE KEY-----',
+                        '-----BEGIN EC PRIVATE KEY-----',
+                        '-----BEGIN PRIVATE KEY-----',
+                    ];
+                    foreach ($markers as $m) {
+                        if (strpos($privateKey, $m) !== false) { $valid = true; break; }
+                    }
+                    if (! $valid) {
+                        $keyErrors[] = 'Private key content does not contain a recognisable PEM/OpenSSH header.';
+                        // don't use this key
+                        $privateKey = null;
+                    }
+                }
+
+                if (!empty($keyErrors)) {
+                    // add warnings/errors to result so view can render them
+                    $result = ['steps' => [], 'errors' => $keyErrors];
+                }
+
+                if ($privateKey !== null) {
+                    $passphrase = $data['sftp_key_passphrase'] ?? null;
+                    $uploader = new SftpKeyUploader($privateKey, $passphrase ?: null);
+                    // avoid keeping the key in $data or in logs
+                    unset($data['sftp_key'], $data['sftp_key_passphrase']);
+                    $model = new BackupModel(null, $uploader);
+                    // inform user that key was used but not stored
+                    $result['warnings'][] = 'Private key was used for this run and was not stored on the server.';
+                }
+
                 $result = $model->runBackup($data);
                 $env = $model->environmentChecks();
 
