@@ -2,7 +2,7 @@ name: Deploy to backup.eshopion.sk
 
 on:
   push:
-    branches: [ main ]
+    tags: [ 'v*' ]
   workflow_dispatch: {}
 
 jobs:
