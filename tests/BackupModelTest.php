@@ -51,12 +51,16 @@ class BackupModelTest extends TestCase
     {
         // Expecting false because credentials/DB unlikely to exist on CI/dev
         $out = $this->model->dumpDatabase('127.0.0.1', 'no_user', 'no_pass', 'no_db', 3306, sys_get_temp_dir() . '/dump_test.sql');
-        $this->assertFalse($out);
+        $this->assertIsArray($out);
+        $this->assertArrayHasKey('ok', $out);
+        $this->assertFalse($out['ok']);
     }
 
     public function testSftpUploadReturnsFalseForMissingLocalFile()
     {
         $ret = $this->model->sftpUpload('/path/does/not/exist.file', '/remote/tmp', 'example.invalid', 22, 'u', 'p');
-        $this->assertFalse($ret);
+        $this->assertIsArray($ret);
+        $this->assertArrayHasKey('ok', $ret);
+        $this->assertFalse($ret['ok']);
     }
 }
