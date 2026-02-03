@@ -1,4 +1,12 @@
 <?php
+/**
+ * Migration view
+ * 
+ * Variables passed via extract():
+ * @var \BackupApp\Service\Translator $translator Language translator
+ * @var \BackupApp\Model\BackupModel $model Database model
+ * @var array<string,mixed> $backupData Backup metadata
+ */
 // Ensure expected variables exist to avoid undefined warnings in views/tests
 if (!isset($backupData) || !is_array($backupData)) {
     $backupData = [];
@@ -7,7 +15,9 @@ if (!isset($env) || !is_array($env)) {
     $env = [];
 }
 if (!isset($translator)) {
-    $translator = new \BackupApp\Service\Translator('cs', ['fallback' => 'cs']);
+    // Fallback: try to get from global session or create minimal translator
+    // This should not normally happen if controller properly initializes variables
+    $translator = new \BackupApp\Service\Translator($_SESSION['lang'] ?? 'cs', ['fallback' => 'cs']);
 }
 ?>
 <!doctype html>
@@ -182,6 +192,80 @@ if (!isset($translator)) {
           📥 <?= htmlspecialchars($translator->translate('migration_import_db_button')) ?>
         </button>
       </div>
+
+      <!-- Step 5: Search and Replace URLs -->
+      <div class="migration-step p-3 rounded mb-3" data-step="search_replace">
+        <div class="d-flex align-items-center mb-2">
+          <span class="step-number">5</span>
+          <h5 class="mb-0">🔍 <?= htmlspecialchars($translator->translate('migration_step_search_replace')) ?></h5>
+        </div>
+        <p class="mb-3 text-muted small">
+          <?= htmlspecialchars($translator->translate('migration_search_replace_desc')) ?>
+        </p>
+        <div class="row g-2 mb-3">
+          <div class="col-md-6">
+            <input type="text" id="search-from" class="form-control form-control-sm" 
+              placeholder="<?= htmlspecialchars($translator->translate('migration_search_from')) ?>"
+              value="">
+          </div>
+          <div class="col-md-6">
+            <input type="text" id="search-to" class="form-control form-control-sm" 
+              placeholder="<?= htmlspecialchars($translator->translate('migration_search_to')) ?>"
+              value="">
+          </div>
+        </div>
+        <div class="form-check mb-3">
+          <input class="form-check-input" type="checkbox" id="dry-run-check" checked>
+          <label class="form-check-label" for="dry-run-check">
+            <?= htmlspecialchars($translator->translate('migration_dry_run')) ?>
+          </label>
+        </div>
+        <button class="btn btn-sm btn-outline-primary" onclick="executeMigrationStep('search_replace')">
+          🔄 <?= htmlspecialchars($translator->translate('migration_execute_search_replace')) ?>
+        </button>
+      </div>
+
+      <!-- Step 6: Clear Caches -->
+      <div class="migration-step p-3 rounded mb-3" data-step="clear_caches">
+        <div class="d-flex align-items-center mb-2">
+          <span class="step-number">6</span>
+          <h5 class="mb-0">🗑️ <?= htmlspecialchars($translator->translate('migration_step_clear_caches')) ?></h5>
+        </div>
+        <p class="mb-3 text-muted small">
+          <?= htmlspecialchars($translator->translate('migration_clear_caches_desc')) ?>
+        </p>
+        <button class="btn btn-sm btn-outline-primary" onclick="executeMigrationStep('clear_caches')">
+          🧹 <?= htmlspecialchars($translator->translate('migration_clear_caches_button')) ?>
+        </button>
+      </div>
+
+      <!-- Step 7: Verify Installation -->
+      <div class="migration-step p-3 rounded mb-3" data-step="verify">
+        <div class="d-flex align-items-center mb-2">
+          <span class="step-number">7</span>
+          <h5 class="mb-0">✅ <?= htmlspecialchars($translator->translate('migration_step_verify')) ?></h5>
+        </div>
+        <p class="mb-3 text-muted small">
+          <?= htmlspecialchars($translator->translate('migration_verify_desc')) ?>
+        </p>
+        <button class="btn btn-sm btn-outline-primary" onclick="executeMigrationStep('verify')">
+          🔎 <?= htmlspecialchars($translator->translate('migration_verify_button')) ?>
+        </button>
+      </div>
+
+      <!-- Step 8: Update Permissions -->
+      <div class="migration-step p-3 rounded mb-3" data-step="fix_permissions">
+        <div class="d-flex align-items-center mb-2">
+          <span class="step-number">8</span>
+          <h5 class="mb-0">🔐 <?= htmlspecialchars($translator->translate('migration_step_fix_permissions')) ?></h5>
+        </div>
+        <p class="mb-3 text-muted small">
+          <?= htmlspecialchars($translator->translate('migration_fix_permissions_desc')) ?>
+        </p>
+        <button class="btn btn-sm btn-outline-primary" onclick="executeMigrationStep('fix_permissions')">
+          🔧 <?= htmlspecialchars($translator->translate('migration_fix_permissions_button')) ?>
+        </button>
+      </div>
     </div>
 
     <!-- Status Output -->
@@ -225,7 +309,7 @@ function executeMigrationStep(step) {
     const stepElement = document.querySelector(`[data-step="${step}"]`);
     
     statusOutput.style.display = 'block';
-    statusContent.textContent = 'Spouštění kroku: ' + step + '...';
+    statusContent.textContent = '⏳ Spouštění kroku: ' + step + '...';
     
     if (stepElement) {
         stepElement.classList.remove('completed');
@@ -234,21 +318,45 @@ function executeMigrationStep(step) {
     
     const method = document.querySelector('input[name="migration_method"]:checked')?.value || 'local';
     
+    // Příprava dat pro search_replace krok
+    let stepData = {
+        step: step,
+        backupData: backupData,
+        method: method
+    };
+    
+    if (step === 'search_replace') {
+        const searchFrom = document.getElementById('search-from')?.value || '';
+        const searchTo = document.getElementById('search-to')?.value || '';
+        const isDryRun = document.getElementById('dry-run-check')?.checked ?? true;
+        
+        stepData.search_from = searchFrom;
+        stepData.search_to = searchTo;
+        stepData.dry_run = isDryRun;
+    }
+    
     fetch('./index.php?action=migration_step', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-            step: step,
-            backupData: backupData,
-            method: method
-        }),
+        body: JSON.stringify(stepData),
         credentials: 'include'
     })
     .then(r => r.json())
     .then(data => {
-        const output = data.output || (data.result?.message) || 'Krok dokončen';
+        let output = '';
+        
+        if (data.output) {
+            output = data.output;
+        } else if (data.result?.message) {
+            output = data.result.message;
+        } else if (data.success) {
+            output = '✅ Krok ' + step + ' dokončen';
+        } else {
+            output = 'Neznámý stav';
+        }
+        
         statusContent.textContent = output;
         
         if (data.success) {
@@ -257,17 +365,17 @@ function executeMigrationStep(step) {
                 stepElement.classList.remove('processing');
                 stepElement.classList.add('completed');
             }
-            // Update complete button status
             updateCompleteButton();
         } else {
             if (stepElement) {
                 stepElement.classList.remove('processing');
             }
-            statusContent.textContent = 'Chyba: ' + (data.error || 'Neznámá chyba');
+            const error = data.error || data.message || 'Neznámá chyba';
+            statusContent.textContent = '❌ Chyba: ' + error;
         }
     })
     .catch(err => {
-        statusContent.textContent = 'Chyba: ' + err.message;
+        statusContent.textContent = '❌ Chyba: ' + err.message;
         if (stepElement) {
             stepElement.classList.remove('processing');
         }

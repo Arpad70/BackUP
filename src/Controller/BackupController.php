@@ -3,18 +3,25 @@ declare(strict_types=1);
 namespace BackupApp\Controller;
 
 use BackupApp\Model\BackupModel;
+use BackupApp\Model\DatabaseCredentials;
 use BackupApp\Config;
 use BackupApp\Service\SftpKeyUploader;
+use BackupApp\Migration\MigrationStepRegistry;
+use BackupApp\Container\ServiceContainer;
 
 class BackupController
 {
+    private ?ServiceContainer $container;
+
+    public function __construct(?ServiceContainer $container = null)
+    {
+        $this->container = $container;
+    }
     public function handle(): void
     {
-        // ensure application logs go to BackUP/logs/backup_app.log
-        $logDir = dirname(__DIR__, 2) . '/logs';
-        if (!is_dir($logDir)) {
-            @mkdir($logDir, 0755, true);
-        }
+        // Initialize service container
+        $container = new ServiceContainer();
+        $logDir = $container->getLogDir();
         ini_set('error_log', $logDir . '/backup_app.log');
 
         try {
@@ -23,26 +30,24 @@ class BackupController
                 @session_start();
             }
 
-            $db_config = Config::loadWordPressConfig();
-
             // determine language and create translator early so we can use it during POST handling
             $lang = $_GET['lang'] ?? $_COOKIE['lang'] ?? 'cs';
-            $translator = new \BackupApp\Service\Translator($lang, ['fallback' => 'cs', 'path' => dirname(__DIR__,2) . '/lang']);
-            $model = new BackupModel(null, null, $translator);
+            $translator = $container->getTranslator($lang);
+            $model = $container->getBackupModel();
 
             // Handle AJAX migration steps
             if (!empty($_POST) && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
-                $this->handleMigrationStep($model, $translator);
+                $this->handleMigrationStep($container);
                 return;
             }
 
             // Handle non-AJAX migration steps
             if (!empty($_GET['action']) && $_GET['action'] === 'migration_step') {
-                $this->handleMigrationStep($model, $translator);
+                $this->handleMigrationStep($container);
                 return;
             }
 
-            $model = new BackupModel(null, null, $translator);
+            $model = $container->getBackupModel();
 
             $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
             if ($method === 'POST') {
@@ -107,7 +112,7 @@ class BackupController
                     $uploader = new SftpKeyUploader($privateKey, $passphrase ?: null);
                     // avoid keeping the key in $data or in logs
                     unset($data['sftp_key'], $data['sftp_key_passphrase']);
-                    $model = new BackupModel(null, $uploader, $translator);
+                    $model = $container->getBackupModel($uploader);
                     // inform user that key was used but not stored
                     $result['warnings'][] = $translator->translate('private_key_used_warning');
                 }
@@ -132,7 +137,7 @@ class BackupController
                 ];
                 
                 // Also store backup data for migration page
-                $_SESSION['last_backup_data'] = [
+                $backup_data = [
                     'source_path' => $data['source_path'] ?? '',
                     'target_path' => $data['target_path'] ?? '',
                     'source_db' => $data['source_db'] ?? '',
@@ -144,8 +149,11 @@ class BackupController
                     'target_db_port' => $data['target_db_port'] ?? '',
                     'target_db_user' => $data['target_db_user'] ?? '',
                 ];
+                $_SESSION['last_backup_data'] = $backup_data;
 
                 // pass translator to result view (translator was already created earlier)
+                $showResult = false;
+                extract(compact('translator', 'result', 'model', 'env', 'appLog', 'showResult', 'backup_data'));
                 include __DIR__ . '/../View/result.php';
                 return;
             }
@@ -166,6 +174,7 @@ class BackupController
 
             if ($showResult && !empty($_GET['lang'])) {
                 // Language changed on result page - show result with new language
+                extract(compact('translator', 'result', 'model', 'env', 'appLog', 'showResult'));
                 include __DIR__ . '/../View/result.php';
                 return;
             }
@@ -173,6 +182,7 @@ class BackupController
             // Check if going to migration page
             if (!empty($_GET['page']) && $_GET['page'] === 'migration') {
                 $backupData = $_SESSION['backup_result']['result']['backup_data'] ?? $_SESSION['last_backup_data'] ?? [];
+                extract(compact('translator', 'model', 'backupData'));
                 include __DIR__ . '/../View/migration.php';
                 return;
             }
@@ -192,14 +202,21 @@ class BackupController
         }
     }
 
-    private function handleMigrationStep(BackupModel $model, \BackupApp\Service\Translator $translator): void
+    private function handleMigrationStep(ServiceContainer $container): void
     {
         header('Content-Type: application/json');
 
-        $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+        $rawInput = file_get_contents('php://input');
+        $input = (is_string($rawInput) ? json_decode($rawInput, true) : null) ?? $_POST;
+        if (!is_array($input)) {
+            $input = $_POST;
+        }
         $step = $input['step'] ?? null;
         $backupData = $input['backupData'] ?? $_SESSION['last_backup_data'] ?? [];
         $method = $input['method'] ?? 'local';
+        
+        $translator = $container->getTranslator();
+        $model = $container->getBackupModel();
 
         if (empty($step)) {
             http_response_code(400);
@@ -210,6 +227,24 @@ class BackupController
         $result = [];
 
         try {
+            // Add step-specific parameters to backupData
+            if ($step === 'search_replace') {
+                $backupData['search_from'] = $input['search_from'] ?? '';
+                $backupData['search_to'] = $input['search_to'] ?? '';
+                $backupData['dry_run'] = $input['dry_run'] ?? true;
+            }
+
+            // Use registry for steps that have been refactored
+            $registry = $container->get('migration_registry');
+            
+            // Pre-migration steps handled by registry
+            if ($registry instanceof \BackupApp\Migration\MigrationStepRegistry && $registry->has($step)) {
+                $result = $registry->execute($step, $backupData);
+                echo json_encode($result);
+                return;
+            }
+
+            // Remaining steps handled here (not yet refactored)
             switch ($step) {
                 case 'clear':
                     if (empty($backupData['target_path'])) {
@@ -223,7 +258,7 @@ class BackupController
                         throw new \Exception('Target path is required');
                     }
                     // Find the latest backup file
-                    $backupDir = dirname(__DIR__, 2) . '/backups';
+                    $backupDir = $container->getAppRoot() . '/backups';
                     $files = @glob($backupDir . '/backup_*.zip') ?: [];
                     if (empty($files)) {
                         throw new \Exception('No backup file found');
@@ -236,12 +271,10 @@ class BackupController
                     if (empty($backupData['target_path']) || empty($backupData['target_db'])) {
                         throw new \Exception('Target path and database are required');
                     }
+                    $dbCredentials = DatabaseCredentials::fromTargetArray($backupData);
                     $result = $model->resetTargetDatabase(
                         $backupData['target_path'],
-                        $backupData['target_db'],
-                        $backupData['target_db_host'] ?? 'localhost',
-                        $backupData['target_db_user'] ?? 'root',
-                        $backupData['target_db_password'] ?? ''
+                        $dbCredentials
                     );
                     break;
 
@@ -250,19 +283,17 @@ class BackupController
                         throw new \Exception('Target path and database are required');
                     }
                     // Find the latest SQL dump
-                    $backupDir = dirname(__DIR__, 2) . '/backups';
+                    $backupDir = $container->getAppRoot() . '/backups';
                     $files = @glob($backupDir . '/db_dump_*.sql') ?: [];
                     if (empty($files)) {
                         throw new \Exception('No database dump file found');
                     }
                     $latestDump = end($files);
+                    $dbCredentials = DatabaseCredentials::fromTargetArray($backupData);
                     $result = $model->importTargetDatabase(
                         $backupData['target_path'],
                         $latestDump,
-                        $backupData['target_db'],
-                        $backupData['target_db_host'] ?? 'localhost',
-                        $backupData['target_db_user'] ?? 'root',
-                        $backupData['target_db_password'] ?? ''
+                        $dbCredentials
                     );
                     break;
 
@@ -286,5 +317,34 @@ class BackupController
             error_log('migration_step error: ' . $e->getMessage());
         }
     }
-}
 
+    /**
+     * Handle GET requests - render form
+     */
+    public function handleGet(): void
+    {
+        $container = $this->container ?? new ServiceContainer();
+        $lang = $_GET['lang'] ?? $_COOKIE['lang'] ?? 'cs';
+        $translator = $container->getTranslator($lang);
+        $model = $container->getBackupModel();
+        
+        // Environment checks
+        $env = $model->environmentChecks();
+        
+        // Make variables available to view
+        extract(compact('translator', 'model', 'env'));
+        
+        // Include form view
+        include __DIR__ . '/../View/form.php';
+    }
+
+    /**
+     * Handle POST requests - process form
+     */
+    public function handlePost(): void
+    {
+        // This calls the main handle() which processes POST
+        // For now, just delegate to handle()
+        $this->handle();
+    }
+}

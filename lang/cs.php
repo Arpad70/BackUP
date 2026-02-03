@@ -145,6 +145,29 @@ return [
     'migration_preserve_backups' => 'Obsah adresáře bude vymazán s výjimkou podsložky "backups"',
     'selected' => 'vybráno',
     'complete' => 'Dokončit',
-    'error_source_required' => 'Zdrojová cesta a zdrojová databáze musí být vyplněny'
+    'error_source_required' => 'Zdrojová cesta a zdrojová databáze musí být vyplněny',
+    
+    // Post-migration steps
+    'migration_step_search_replace' => 'Vyhledání a náhrada dat',
+    'migration_search_replace_desc' => 'Nahradit staré adresy URL nebo domény novými v databázi a serializovaných datech',
+    'migration_search_from' => 'Hledat (např. stará-domena.cz)',
+    'migration_search_to' => 'Nahradit za (např. nova-domena.cz)',
+    'migration_dry_run' => 'Zkušební běh (bez skutečných změn)',
+    'migration_execute_search_replace' => 'Spustit vyhledání a náhradu',
+    'migration_step_clear_caches' => 'Vyčištění cache',
+    'migration_clear_caches_desc' => 'Vymaže mezipaměť pluginů, motivů a systémové cache WordPress',
+    'migration_clear_caches_button' => 'Vyčistit cache',
+    'migration_step_verify' => 'Ověření instalace',
+    'migration_verify_desc' => 'Ověří, že je WordPress funkční a všechny kritické součásti jsou přítomny',
+    'migration_verify_button' => 'Ověřit',
+    'migration_step_fix_permissions' => 'Nastavení oprávnění',
+    'migration_fix_permissions_desc' => 'Nastaví správná oprávnění souborů a adresářů pro správný chod webu',
+    'migration_fix_permissions_button' => 'Nastavit oprávnění',
+    'error_db_not_connected' => 'Připojení k databázi selhalo',
+    'error_search_empty' => 'Hledaný řetězec nemůže být prázdný',
+    'migration_search_complete' => 'Vyhledání a náhrada dokončeny',
+    'migration_cache_cleared' => 'Cache úspěšně vyčištěna',
+    'migration_verification_passed' => 'Ověření projítko bez problémů',
+    'migration_permissions_fixed' => 'Oprávnění byla úspěšně nastavena',
 ];
 

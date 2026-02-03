@@ -65,37 +65,16 @@ class BackupModel
 
         $this->setProgress(10, 'dumping_database', 'db_dump');
         $dbFile = $this->tmpDir . '/db_dump_' . time() . '.sql';
-        $dbHost = $data['db_host'] ?? null;
-        if (!is_string($dbHost) || $dbHost === '') {
-            $dbHost = '127.0.0.1';
-        }
-        $dbUser = $data['db_user'] ?? null;
-        if (!is_string($dbUser)) {
-            $dbUser = '';
-        }
-        $dbPass = $data['db_pass'] ?? null;
-        if (!is_string($dbPass)) {
-            $dbPass = '';
-        }
-        $dbName = $data['db_name'] ?? null;
-        if (!is_string($dbName)) {
-            $dbName = '';
-        }
-        $dbPort = $data['db_port'] ?? null;
-        if (is_int($dbPort)) {
-            // ok
-        } elseif (is_string($dbPort) && ctype_digit($dbPort)) {
-            $dbPort = (int) $dbPort;
-        } else {
-            $dbPort = 3306;
-        }
-
+        
+        // Use DatabaseCredentials to validate and normalize DB parameters
+        $dbCredentials = DatabaseCredentials::fromArray($data, 'db_');
+        
         $dbResult = $this->dumpDatabase(
-            $dbHost,
-            $dbUser,
-            $dbPass,
-            $dbName,
-            $dbPort,
+            $dbCredentials->getHost(),
+            $dbCredentials->getUser(),
+            $dbCredentials->getPassword(),
+            $dbCredentials->getDatabase(),
+            $dbCredentials->getPort(),
             $dbFile
         );
 
@@ -433,7 +412,13 @@ class BackupModel
             $files = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::CHILD_FIRST);
 
             foreach ($files as $fileinfo) {
+                if (!($fileinfo instanceof \SplFileInfo)) {
+                    continue;
+                }
                 $path = $fileinfo->getRealPath();
+                if ($path === false) {
+                    continue;
+                }
                 
                 // Skip backups directory
                 if (strpos($path, $backupsDir) === 0) {
@@ -456,8 +441,14 @@ class BackupModel
             $iterator = new \RecursiveDirectoryIterator($targetPath, \RecursiveDirectoryIterator::SKIP_DOTS);
             $files = new \RecursiveIteratorIterator($iterator, \RecursiveIteratorIterator::CHILD_FIRST);
             foreach ($files as $fileinfo) {
+                if (!($fileinfo instanceof \SplFileInfo)) {
+                    continue;
+                }
                 $path = $fileinfo->getRealPath();
-                if (strpos($path, $backupsDir) !== 0 && $fileinfo->isDir()) {
+                if ($path === false || strpos($path, $backupsDir) === 0) {
+                    continue;
+                }
+                if ($fileinfo->isDir()) {
                     @rmdir($path);
                 }
             }
@@ -516,36 +507,35 @@ class BackupModel
     /**
      * Reset target database using wp-cli
      * @param string $targetPath Target WordPress directory
-     * @param string $targetDb Target database name
-     * @param string $targetDbHost Database host
-     * @param string $targetDbUser Database user
-     * @param string $targetDbPassword Database password
+     * @param DatabaseCredentials $dbCredentials Database credentials
      * @return array<string,mixed> Result with ok, message
      */
-    public function resetTargetDatabase(string $targetPath, string $targetDb, string $targetDbHost, string $targetDbUser, string $targetDbPassword): array
+    public function resetTargetDatabase(string $targetPath, DatabaseCredentials $dbCredentials): array
     {
         if (!is_dir($targetPath)) {
             return ['ok' => false, 'message' => 'Target directory not found: ' . $targetPath];
         }
 
         // Check if wp-cli is available
-        $wpCliOutput = shell_exec('which wp 2>&1') ?? '';
+        $wpCliOutput = shell_exec('which wp 2>&1');
+        $wpCliOutput = is_string($wpCliOutput) ? $wpCliOutput : '';
         if (empty(trim($wpCliOutput))) {
             return ['ok' => false, 'message' => 'wp-cli is not installed'];
         }
 
         try {
             $escapedPath = escapeshellarg($targetPath);
-            $escapedDb = escapeshellarg($targetDb);
-            $escapedHost = escapeshellarg($targetDbHost);
-            $escapedUser = escapeshellarg($targetDbUser);
-            $escapedPass = escapeshellarg($targetDbPassword);
+            $escapedDb = escapeshellarg($dbCredentials->getDatabase());
+            $escapedHost = escapeshellarg($dbCredentials->getHost());
+            $escapedUser = escapeshellarg($dbCredentials->getUser());
+            $escapedPass = escapeshellarg($dbCredentials->getPassword());
 
             // Reset database using wp-cli
             $cmd = "cd {$escapedPath} && wp db reset --yes --allow-root --dbname={$escapedDb} --dbhost={$escapedHost} --dbuser={$escapedUser} --dbpass={$escapedPass} 2>&1";
             $output = shell_exec($cmd);
+            $output = is_string($output) ? $output : '';
 
-            if ($output === null || strpos($output, 'error') !== false) {
+            if (empty($output) || strpos($output, 'error') !== false) {
                 return ['ok' => false, 'message' => 'Database reset failed: ' . $output];
             }
 
@@ -559,13 +549,10 @@ class BackupModel
      * Import backup database using wp-cli
      * @param string $targetPath Target WordPress directory
      * @param string $dumpFile Path to SQL dump file
-     * @param string $targetDb Target database name
-     * @param string $targetDbHost Database host
-     * @param string $targetDbUser Database user
-     * @param string $targetDbPassword Database password
+     * @param DatabaseCredentials $dbCredentials Database credentials
      * @return array<string,mixed> Result with ok, message
      */
-    public function importTargetDatabase(string $targetPath, string $dumpFile, string $targetDb, string $targetDbHost, string $targetDbUser, string $targetDbPassword): array
+    public function importTargetDatabase(string $targetPath, string $dumpFile, DatabaseCredentials $dbCredentials): array
     {
         if (!file_exists($dumpFile)) {
             return ['ok' => false, 'message' => 'Database dump file not found: ' . $dumpFile];
@@ -578,16 +565,17 @@ class BackupModel
         try {
             $escapedPath = escapeshellarg($targetPath);
             $escapedDump = escapeshellarg($dumpFile);
-            $escapedDb = escapeshellarg($targetDb);
-            $escapedHost = escapeshellarg($targetDbHost);
-            $escapedUser = escapeshellarg($targetDbUser);
-            $escapedPass = escapeshellarg($targetDbPassword);
+            $escapedDb = escapeshellarg($dbCredentials->getDatabase());
+            $escapedHost = escapeshellarg($dbCredentials->getHost());
+            $escapedUser = escapeshellarg($dbCredentials->getUser());
+            $escapedPass = escapeshellarg($dbCredentials->getPassword());
 
             // Import database using wp-cli
             $cmd = "cd {$escapedPath} && wp db import {$escapedDump} --allow-root --dbname={$escapedDb} --dbhost={$escapedHost} --dbuser={$escapedUser} --dbpass={$escapedPass} 2>&1";
             $output = shell_exec($cmd);
+            $output = is_string($output) ? $output : '';
 
-            if ($output === null || strpos($output, 'error') !== false) {
+            if (empty($output) || strpos($output, 'error') !== false) {
                 return ['ok' => false, 'message' => 'Database import failed: ' . $output];
             }
 

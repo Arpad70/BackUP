@@ -1,4 +1,15 @@
 <?php
+/**
+ * Result view
+ * 
+ * Variables passed via extract():
+ * @var \BackupApp\Service\Translator $translator Language translator
+ * @var array<string,mixed> $result Backup result
+ * @var \BackupApp\Model\BackupModel $model Database model
+ * @var array<string,mixed> $env Environment checks
+ * @var string $appLog Application log
+ * @var bool $showResult Whether to show result
+ */
 // Ensure expected variables exist to avoid undefined warnings in views/tests
 if (!isset($result) || !is_array($result)) {
     $result = ['steps' => [], 'errors' => []];
@@ -68,117 +79,59 @@ if (!isset($appLog)) {
     <?php if (!empty($result['errors'])): ?>
       <div class="p-3 rounded mb-4 error-card">
         <h2 class="h5 text-danger mb-3">❌ <?= htmlspecialchars($translator->translate('errors')) ?></h2>
-        <?php foreach($result['errors'] as $e): ?>
+        <?php 
+          $errors = $result['errors'] ?? [];
+          if (is_array($errors)):
+            foreach($errors as $e): 
+        ?>
           <div class="message-text mb-2">
-            • <?= htmlspecialchars($e) ?>
+            • <?= htmlspecialchars(is_string($e) ? $e : (string)$e) ?>
           </div>
-        <?php endforeach; ?>
+        <?php 
+            endforeach;
+          endif;
+        ?>
       </div>
     <?php endif; ?>
     
     <?php if (!empty($result['warnings'])): ?>
       <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
         <strong>⚠️ <?= htmlspecialchars($translator->translate('warnings')) ?></strong>
-        <?php foreach($result['warnings'] as $w): ?>
-          <div class="message-text"><?= htmlspecialchars($w) ?></div>
-        <?php endforeach; ?>
+        <?php 
+          $warnings = $result['warnings'] ?? [];
+          if (is_array($warnings)):
+            foreach($warnings as $w): 
+        ?>
+          <div class="message-text"><?= htmlspecialchars(is_string($w) ? $w : (string)$w) ?></div>
+        <?php 
+            endforeach;
+          endif;
+        ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
     <?php endif; ?>
     
-    <?php if (!empty($env)): ?>
-      <div class="p-3 rounded mb-3 section-environment">
-        <h5 class="mb-3"><?= htmlspecialchars($translator->translate('environment_diagnostics')) ?></h5>
-        <div class="row g-3">
-          <!-- mysqldump -->
-          <div class="col-md-6">
-            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
-              <span style="font-size: 1.5rem; min-width: 2rem;">
-                <?= $env['mysqldump'] ? '✅' : '❌' ?>
-              </span>
-              <div style="flex: 1;">
-                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_mysqldump_desc')) ?>"><?= htmlspecialchars($translator->translate('env_mysqldump')) ?></strong>
-                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_required')) ?></div>
-                <span class="badge <?= $env['mysqldump'] ? 'bg-success' : 'bg-danger' ?> mt-2">
-                  <?= htmlspecialchars($translator->translate($env['mysqldump'] ? 'ok' : 'missing')) ?>
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- zip ext -->
-          <div class="col-md-6">
-            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
-              <span style="font-size: 1.5rem; min-width: 2rem;">
-                <?= $env['zip_ext'] ? '✅' : '❌' ?>
-              </span>
-              <div style="flex: 1;">
-                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_zip_desc')) ?>"><?= htmlspecialchars($translator->translate('env_zip')) ?></strong>
-                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_required')) ?></div>
-                <span class="badge <?= $env['zip_ext'] ? 'bg-success' : 'bg-danger' ?> mt-2">
-                  <?= htmlspecialchars($translator->translate($env['zip_ext'] ? 'ok' : 'missing')) ?>
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- phpseclib -->
-          <div class="col-md-6">
-            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
-              <span style="font-size: 1.5rem; min-width: 2rem;">
-                <?= $env['phpseclib'] ? '✅' : '⚠️' ?>
-              </span>
-              <div style="flex: 1;">
-                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_phpseclib_desc')) ?>"><?= htmlspecialchars($translator->translate('env_phpseclib')) ?></strong>
-                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_recommended')) ?></div>
-                <span class="badge <?= $env['phpseclib'] ? 'bg-success' : 'bg-warning' ?> mt-2">
-                  <?= htmlspecialchars($translator->translate($env['phpseclib'] ? 'available' : 'not_available')) ?>
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- ssh2 ext -->
-          <div class="col-md-6">
-            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
-              <span style="font-size: 1.5rem; min-width: 2rem;">
-                <?= $env['ssh2_ext'] ? '✅' : '⚠️' ?>
-              </span>
-              <div style="flex: 1;">
-                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_ssh2_desc')) ?>"><?= htmlspecialchars($translator->translate('env_ssh2')) ?></strong>
-                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_recommended')) ?></div>
-                <span class="badge <?= $env['ssh2_ext'] ? 'bg-success' : 'bg-warning' ?> mt-2">
-                  <?= htmlspecialchars($translator->translate($env['ssh2_ext'] ? 'available' : 'not_available')) ?>
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <!-- tmp writable -->
-          <div class="col-md-6">
-            <div class="d-flex align-items-start gap-2 p-2 rounded" style="background: #f9fafb;">
-              <span style="font-size: 1.5rem; min-width: 2rem;">
-                <?= $env['tmp_writable'] ? '✅' : '❌' ?>
-              </span>
-              <div style="flex: 1;">
-                <strong data-tooltip="<?= htmlspecialchars($translator->translate('env_tmp_writable_desc')) ?>"><?= htmlspecialchars($translator->translate('env_tmp_writable')) ?></strong>
-                <div class="small text-muted mt-1"><?= htmlspecialchars($translator->translate('env_status_required')) ?></div>
-                <span class="badge <?= $env['tmp_writable'] ? 'bg-success' : 'bg-danger' ?> mt-2">
-                  <?= htmlspecialchars($translator->translate($env['tmp_writable'] ? 'yes' : 'no')) ?>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <?php if (!empty($env) && is_array($env)): 
+      // Cast environment array values to bool
+      $env_bool = [];
+      foreach ($env as $k => $v) {
+        $env_bool[$k] = (bool)$v;
+      }
+    ?>
+      <?= \BackupApp\View\Components\EnvironmentDiagnosticsComponent::render($env_bool, $translator) ?>
     <?php endif; ?>
     
     <div class="p-3 rounded mb-4">
       <h2 class="h5 mb-3">📝 <?= htmlspecialchars($translator->translate('steps')) ?></h2>
-      <?php if (empty($result['steps'])): ?>
+      <?php 
+        $steps = is_array($result['steps'] ?? null) ? $result['steps'] : [];
+        if (empty($steps)): 
+      ?>
         <div class="text-muted">No steps executed.</div>
       <?php else: ?>
-        <?php foreach($result['steps'] as $idx => $s): ?>
+        <?php foreach($steps as $idx => $s): 
+          if (!is_array($s)) continue;
+        ?>
           <?php 
             $hasError = false;
             foreach ($s as $key => $val) {
@@ -193,25 +146,27 @@ if (!isset($appLog)) {
               <?php echo ($idx + 1) . '. '; ?>
               <?php
                 // Print step name (first key)
-                $keys = array_keys($s);
+                $keys = is_array($s) ? array_keys($s) : [];
                 if (!empty($keys)) {
-                  echo htmlspecialchars($keys[0]);
+                  echo htmlspecialchars((string)$keys[0]);
                 }
               ?>
               <?php
                 // Print first value as status
-                foreach ($s as $key => $val) {
-                  if (is_array($val)) {
-                    $status = !empty($val['ok']) ? '✅ ' . htmlspecialchars($translator->translate('ok')) : '❌ ' . htmlspecialchars($translator->translate('failed'));
-                    echo ' — ' . $status;
-                    if (!empty($val['message'])) {
-                      echo '<div class="message-text">' . htmlspecialchars($val['message']) . '</div>';
+                if (is_array($s)):
+                  foreach ($s as $key => $val) {
+                    if (is_array($val)) {
+                      $status = !empty($val['ok']) ? '✅ ' . htmlspecialchars($translator->translate('ok')) : '❌ ' . htmlspecialchars($translator->translate('failed'));
+                      echo ' — ' . $status;
+                      if (!empty($val['message']) && is_string($val['message'])) {
+                        echo '<div class="message-text">' . htmlspecialchars($val['message']) . '</div>';
+                      }
+                    } else if (!is_bool($val) && is_string($val)) {
+                      echo '<div class="message-text text-muted">📂 ' . htmlspecialchars($val) . '</div>';
                     }
-                  } else if (!is_bool($val)) {
-                    echo '<div class="message-text text-muted">📂 ' . htmlspecialchars($val) . '</div>';
+                    break; // Only show first item in step
                   }
-                  break; // Only show first item in step
-                }
+                endif;
               ?>
             </div>
           </div>

@@ -10,13 +10,22 @@ class Translator
     private string $locale;
     private string $fallback;
     private string $path;
+    /**
+     * @var array<string,string>
+     */
     private array $messages = [];
 
+    /**
+     * @param string $locale
+     * @param array<string,mixed> $opts
+     */
     public function __construct(string $locale = 'cs', array $opts = [])
     {
         $this->locale = $locale ?: 'cs';
-        $this->fallback = $opts['fallback'] ?? 'cs';
-        $this->path = $opts['path'] ?? dirname(__DIR__, 2) . '/lang';
+        $fallback = $opts['fallback'] ?? 'cs';
+        $path = $opts['path'] ?? dirname(__DIR__, 2) . '/lang';
+        $this->fallback = is_string($fallback) ? $fallback : 'cs';
+        $this->path = is_string($path) ? $path : dirname(__DIR__, 2) . '/lang';
         $this->loadMessages();
     }
 
@@ -45,12 +54,21 @@ class Translator
         return $this->locale;
     }
 
+    /**
+     * Translate a key with optional parameters
+     * 
+     * @param string $key
+     * @param array<string,mixed> $params
+     * @return string
+     */
     public function translate(string $key, array $params = []): string
     {
-        $text = $this->messages[$key] ?? $key;
+        $text = (string)($this->messages[$key] ?? $key);
         if (!empty($params)) {
             foreach ($params as $k => $v) {
-                $text = str_replace('%' . $k . '%', (string)$v, $text);
+                if (is_scalar($v) || $v === null) {
+                    $text = str_replace('%' . $k . '%', (string)$v, $text);
+                }
             }
         }
         return $text;
