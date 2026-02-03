@@ -169,5 +169,11 @@ return [
     'migration_cache_cleared' => 'Cache úspěšně vyčištěna',
     'migration_verification_passed' => 'Ověření projítko bez problémů',
     'migration_permissions_fixed' => 'Oprávnění byla úspěšně nastavena',
+    
+    // Dry-run mode
+    'dry_run_mode' => 'Testovací běh (bez skutečných změn)',
+    'dry_run_help' => 'Aplikace bude simulovat všechny operace bez provedení skutečných změn. Ideální pro testování.',
+    'dry_run_label' => 'Testovací běh',
+    'dry_run_warning' => 'TESTOVACÍ BĚAH: Žádné skutečné změny nebudou provedeny',
 ];
 

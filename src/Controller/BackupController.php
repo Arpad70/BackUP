@@ -117,6 +117,15 @@ class BackupController
                     $result['warnings'][] = $translator->translate('private_key_used_warning');
                 }
 
+                // Extract and set dry-run mode
+                $dryRun = (bool)($_POST['dry_run'] ?? false);
+                $model->setDryRun($dryRun);
+                
+                if ($dryRun) {
+                    $warning = $translator->translate('dry_run_warning');
+                    $result['warnings'][] = $warning;
+                }
+
                 $result = $model->runBackup($data);
                 $env = $model->environmentChecks();
 
@@ -133,7 +142,8 @@ class BackupController
                 $_SESSION['backup_result'] = [
                     'result' => $result,
                     'env' => $env,
-                    'appLog' => $appLog
+                    'appLog' => $appLog,
+                    'dryRun' => $dryRun
                 ];
                 
                 // Also store backup data for migration page
@@ -153,7 +163,7 @@ class BackupController
 
                 // pass translator to result view (translator was already created earlier)
                 $showResult = false;
-                extract(compact('translator', 'result', 'model', 'env', 'appLog', 'showResult', 'backup_data'));
+                extract(compact('translator', 'result', 'model', 'env', 'appLog', 'showResult', 'backup_data', 'dryRun'));
                 include __DIR__ . '/../View/result.php';
                 return;
             }
@@ -163,18 +173,20 @@ class BackupController
             $env = null;
             $appLog = '';
             $showResult = false;
+            $dryRun = false;
             
             if (!empty($_SESSION['backup_result'])) {
                 $stored = $_SESSION['backup_result'];
                 $result = $stored['result'] ?? null;
                 $env = $stored['env'] ?? null;
                 $appLog = $stored['appLog'] ?? '';
+                $dryRun = (bool)($stored['dryRun'] ?? false);
                 $showResult = true;
             }
 
             if ($showResult && !empty($_GET['lang'])) {
                 // Language changed on result page - show result with new language
-                extract(compact('translator', 'result', 'model', 'env', 'appLog', 'showResult'));
+                extract(compact('translator', 'result', 'model', 'env', 'appLog', 'showResult', 'dryRun'));
                 include __DIR__ . '/../View/result.php';
                 return;
             }

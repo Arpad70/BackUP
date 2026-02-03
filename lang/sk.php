@@ -169,4 +169,10 @@ return [
     'migration_cache_cleared' => 'Vyrovnávacie pamäte boli úspešne vymazané',
     'migration_verification_passed' => 'Overenie prešlo bez problémov',
     'migration_permissions_fixed' => 'Oprávnenia boli úspešne nastavené',
+    
+    // Dry-run mode
+    'dry_run_mode' => 'Testovací beh (bez skutočných zmien)',
+    'dry_run_help' => 'Aplikácia bude simulovať všetky operácie bez vykonania skutočných zmien. Ideálne na testovanie.',
+    'dry_run_label' => 'Testovací běh',
+    'dry_run_warning' => 'TESTOVACÍ BEH: Žiadne skutočné zmeny sa neprovedú',
 ];

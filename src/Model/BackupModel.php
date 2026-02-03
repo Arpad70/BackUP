@@ -13,6 +13,7 @@ class BackupModel
     private DatabaseDumper $dumper;
     private UploaderInterface $uploader;
     private ?\BackupApp\Service\Translator $translator = null;
+    private bool $dryRun = false;
 
     public function __construct(?DatabaseDumper $dumper = null, ?UploaderInterface $uploader = null, ?\BackupApp\Service\Translator $translator = null)
     {
@@ -42,6 +43,17 @@ class BackupModel
     public function getProgressFile(): ?string
     {
         return $this->progressFile;
+    }
+
+    public function setDryRun(bool $dryRun): self
+    {
+        $this->dryRun = $dryRun;
+        return $this;
+    }
+
+    public function isDryRun(): bool
+    {
+        return $this->dryRun;
     }
 
     /**

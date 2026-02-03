@@ -169,4 +169,10 @@ return [
     'migration_cache_cleared' => 'Caches cleared successfully',
     'migration_verification_passed' => 'Verification passed without issues',
     'migration_permissions_fixed' => 'Permissions have been set successfully',
+    
+    // Dry-run mode
+    'dry_run_mode' => 'Dry-run (no actual changes)',
+    'dry_run_help' => 'The application will simulate all operations without making actual changes. Perfect for testing.',
+    'dry_run_label' => 'Dry-run mode',
+    'dry_run_warning' => 'DRY-RUN: No actual changes will be made',
 ];

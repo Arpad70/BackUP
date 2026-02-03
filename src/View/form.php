@@ -66,6 +66,20 @@
       }
     ?>
       <?= \BackupApp\View\Components\EnvironmentDiagnosticsComponent::render($env_bool, $translator) ?>
+      
+      <!-- Dry-Run Mode Toggle -->
+      <div class="p-3 rounded mb-3" style="border-left: 5px solid #7c3aed; background-color: #ede9fe;">
+        <h5 style="color: #6d28d9;" class="mb-3"><?= htmlspecialchars($translator->translate('dry_run_mode') ?? 'Testovací běh (bez skutečných změn)') ?></h5>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" name="dry_run" id="dryRunCheck" value="1">
+          <label class="form-check-label" for="dryRunCheck" data-tooltip="<?= htmlspecialchars($translator->translate('dry_run_help') ?? 'Aplikace bude simulovat všechny operace bez provedení skutečných změn.') ?>">
+            <strong><?= htmlspecialchars($translator->translate('dry_run_label') ?? 'Testovací běh') ?></strong>
+          </label>
+        </div>
+        <div class="form-text mt-2" style="color: #6d28d9;">
+          ℹ️ <?= htmlspecialchars($translator->translate('dry_run_help') ?? 'Aplikace bude simulovat všechny operace bez provedení skutečných změn. Ideální pro testování.') ?>
+        </div>
+      </div>
     <?php endif; ?>
 
     <form id="backupForm" method="post" enctype="multipart/form-data">

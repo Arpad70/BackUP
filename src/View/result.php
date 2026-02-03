@@ -9,6 +9,7 @@
  * @var array<string,mixed> $env Environment checks
  * @var string $appLog Application log
  * @var bool $showResult Whether to show result
+ * @var bool $dryRun Whether dry-run mode was enabled
  */
 // Ensure expected variables exist to avoid undefined warnings in views/tests
 if (!isset($result) || !is_array($result)) {
@@ -19,6 +20,9 @@ if (!isset($env) || !is_array($env)) {
 }
 if (!isset($appLog)) {
     $appLog = '';
+}
+if (!isset($dryRun)) {
+    $dryRun = false;
 }
 ?>
 <!doctype html>
@@ -75,6 +79,16 @@ if (!isset($appLog)) {
         </select>
       </div>
     </div>
+    
+    <?php if ($dryRun): ?>
+      <div class="alert alert-info alert-dismissible fade show mb-4" role="alert" style="background-color: #dbeafe; border-color: #0284c7; color: #0c4a6e;">
+        <strong style="color: #0c4a6e;">🧪 <?= htmlspecialchars($translator->translate('dry_run_mode')) ?></strong>
+        <div style="margin-top: 0.5rem; font-size: 0.95rem;">
+          ℹ️ <?= htmlspecialchars($translator->translate('dry_run_warning') ?? 'DRY-RUN: Žádné skutečné změny nebudou provedeny!') ?>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <?php endif; ?>
     
     <?php if (!empty($result['errors'])): ?>
       <div class="p-3 rounded mb-4 error-card">
